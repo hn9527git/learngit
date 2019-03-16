@@ -1,0 +1,47 @@
+计算机网络中的硬件	
+	路由器：根据IP转发信息
+	集线器: 将局域网中的多台计算机连接到一起，广播型连接
+	中继器：加强传输的信号，使之传输的更远
+	交换机：高级集线器，可点对点连接（mac地址）
+	网关：两个不同网络之间的翻译
+	网桥：连接两个不同的网络
+socket
+	是对网络底层的一个封装，可以看成一个文件。
+	<对方IP，对方PORT,本地IP，本地PORT>
+	ip：找到这个网络节点
+	port：用来识别该网络节点上的某个应用
+方式
+	SOCK_STREAM:使用TCP协议，可靠传输
+	SOCK_DGRAM:使用UDP协议，不可靠协议
+	SOCK_RAW:需要手动封装和解析
+基于TCP的C/S架构模型
+	客户端：socket->connect->write->read->close;
+	服务端：socket->bind->listen->accept->read->write->close;
+客户端：
+	--AF_INET:IPV4
+	--SOCK_STREAM:基于TCP
+	--0;参数二的默认协议
+	socket(AF_INET,SOCK_STREAM,0);
+	类型--seraddr_in.sin_family=AF_INET;
+	端口--seraddr_in.sin_addr.s_addr=inet_addr("192.168.57.129")--点分ip转整数
+	地址--seraddr_in.sin_port=htons(8888);--本地转换网络字节序（大小端）
+	未用--bzero(seraddr.sin_zero,8);
+	connect(sockfd,(struct sockaddr *)&seraddr,sizeof(seraddr));
+	创建线程--一个读，一个写
+
+服务器端：
+	socket(AF_INET,SOCK_STREAM,0);
+	类型--seraddr_in.sin_family=AF_INET;
+	端口--seraddr_in.sin_addr.s_addr=inet_addr("192.168.57.129")--点分ip转整数
+	地址--seraddr_in.sin_port=htons(8888);--本地转换网络字节序（大小端）
+	未用--bzero(seraddr.sin_zero,8);
+	bind(sockfd,(struct sockaddr *)&seraddr,sizeof(seraddr));
+	listen(sockfd,20);--定义连接队列数20
+	while(1)
+	--连接的客户端信息存在clientaddr结构体中
+	--创建线程进行读写
+	{sock=accept(sockfd,(struct sockaddr *)&clientaddr,&ilen}
+TCP:
+	所有知名服务使用的端口都定义在/etc/services文件中
+	三次握手，四次挥手
+	

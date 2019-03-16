@@ -1,0 +1,132 @@
+﻿存储过程：-----------------------------------------------------------------------------------------------------------------
+	一组可编程的函数，是为了完成特定功能的SQL语句集
+	完成特定功能，保存在数据字典中
+特点：
+	批量处理，统一接口
+delimiter //（任意符号） 
+	修改语句提交符号
+例：
+	delimiter //
+	create procedure cc_name()
+	BEGIN
+	--sql语句
+	END//
+	delimiter ;
+使用：
+	call name();
+查看：
+	show procedure status WHERE DB="my_db_name";
+	show create procedure cc_name;
+删除：
+	drop procedure cc_name;
+声明变量：
+	delimiter //
+	create procedure cc_name()
+	BEGIN
+	--声明变量
+	declare res1,res2 varchar(255) default "0";
+	--变量赋值
+	set res1=3;
+	select avg(salary) into res2 from table_name;
+	END//
+	delimiter ;	
+存储过程参数：
+	in | out | inout
+	delimiter //
+	create procedure get_name(in name varchar(255),out salary int)
+	BEGIN
+	select salary into salary from table_name where ename=name;
+	END//
+	delimiter ;
+参数使用：
+	call get_name('luban',@s);
+	select @s from DUAL(虚拟表，无表可用可以用这个，也可以不用);
+自定义函数：
+	delimiter //
+	create function f_name(n int) returns varchar(255)
+	BEGIN
+	declare str varchar(100) default 'a-zA-Z';
+	declare i int default 0;
+	declare res_str varchar(255) default '';
+	while i<n do
+	set res_str=concat(res_str,substr('floor(rand()*52+1)',1,1));
+	set i=i+1;
+	end while
+	return res_str;
+	END//
+插入千万条数据例：
+	delimiter //
+	create procedure insert_emp(in start_num int,in max_num int)
+	begin
+	declare i int default 0;
+	set autocommit=0;--不让自动提交SQL语句
+	repeat
+	set i=i+1;
+	insert into emp values(start_num+i,f_name(6),floor(10+rand()*30));
+	until i=max_num
+	end repeat;
+	commit;-- 提交所有SQL语句，提高效率
+	end//
+	delimiter ;
+调用：
+	call insert_emp(100,10000000);--本机运行了两个小时-……-
+事务：############################################################################################
+	A：原子性	
+	C：一致性
+	I：隔离性
+	D：持久性
+例：
+	start transaction://开始事务
+	update a set x=x-2000;//实际没变
+	update b set y=y+2000;//实际没变
+	commit;//事务结束，实际修改
+--rollback--
+	start transaction;
+	update a set x=x-2000;//实际没变
+	update b set y=y+2000;//实际没变
+	rollback//撤回事务所有操作
+--事务并发问题--
+		  事务隔离级别（select @@tx_isolation;）8.0(select @@transaction_isolation;)
+	读未提交（read uncommit）：一个会话查到另一个会话的未提交事务所作的修改
+	不可重复读（read commit）:一个事务要等到另一个事务提交后才能读到
+	重复读（repeatable read）：
+	串行化（serializable）:不常用
+￥￥￥￥￥￥￥￥￥￥￥￥￥￥￥￥￥￥￥￥￥￥￥￥￥￥￥￥￥￥￥￥￥￥￥￥￥￥￥￥￥￥￥￥￥￥￥￥￥￥￥￥￥￥￥￥￥￥￥￥￥￥￥￥￥￥￥
+视图：
+	是一个虚拟表，内容由查询定义，简单来说，就是由select结果构成的表。
+	安全，查询性能提高，提高了数据的独立性
+例:
+	create view view_name as (select语句);
+使用
+	select * from view_name;
+修改
+	create or replace view view_name as (select 语句)；
+删除
+	drop view view_name;
+详细语句：
+	create algorithm={undefined|merge|temptable} view view_name
+	as (select语句) 
+	with {cascaded|local|check option};
+替换式:复合查询
+具化式：先处理视图，结果集存在内存中，再处理SQL语句；
+merge：属于替换式，修改视图可以直接修改基表中的数据
+temptable:属于具化式，由于数据存在临时表中，不可以进行更新操作
+undefined：没有定义该参数，mysql倾向于替换式，因为更有效
+with check option:更新数据时不能插入不符合视图限制条件的记录
+视图不可更改部分：不是来源于基表的数据就不能修改
+！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！
+MYSQL索引
+	优点：提高查询效率，不必查询所有数据，节约查询时间，降低CPU消耗
+	缺点：占用空间，降低更新表的速度
+分类：
+	单值，唯一，复合||全文(myisam)，空间(myisam)
+创建：
+	--声明主键时，自动创建唯一索引
+	create index 索引名称 on table(columu[]...);
+删除：
+	drop index 索引名称 on table;
+explain:
+	explain select 语句;
+索引方法：
+	innodb只支持BTREE，不支持HASH
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
