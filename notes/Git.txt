@@ -1,0 +1,131 @@
+Git：分布式版本控制系统
+创建版本库：mkdir git_learn
+	cd git_learn
+	pwd
+	git init
+添加文件到Git:
+	git add filename
+	git commit -m "注释"
+Git当前状态：
+	git status
+查看修改：
+	git diff filename
+丢弃修改：
+	1.处于工作区没有add
+		git checkout -- filename 注意：git checkout filename 切换到另一个分支
+	2.已经add到暂存区
+		回退到最新版本：git reset HEAD filename
+		丢弃修改：转第一条
+查看日志：
+	git log [--pretty=oneline]
+版本标示：
+	当前版本：HEAD 
+	上一个版本：HEAD^ 
+	上n个版本：HEAD^n
+版本回退：
+	git reset --hard HEAD^n [ID也可以]
+命令记录:
+	git reflog
+删除文件：
+	rm filename 误删可从版本库中恢复出来即（转到）丢弃修改
+	git rm filename
+	git commit -m "remove filename"
+Git远程仓库：
+	cd .ssh
+	ssh-keygen -t rsa -C "youremail@example.com" 一路enter默认 不设密码
+	将/home/hn/.ssh/id_rsa.pub内容复制到git account的ssh key
+关联远程仓库：
+	git remote add origin git@github.com:hn9527/learngit.git
+	仓库名为默认为origin 
+第一次推送所有内容：
+	git push -u origin master
+推送至远程仓库：
+	git push origin master
+	可等到有网时一次推送
+	把本地master分支的最新修改推送至远程仓库
+克隆远程到本地库：
+	git clone git@github.com:hn9527/learngit.git
+分支：你创建了一个属于你自己的分支，别人看不到，还继续在原来的分支上正常工作
+		而你在自己的分支上干活，想提交就提交，直到开发完毕后，再一次性合并到原来的分支上
+		这样，既安全，又不影响别人工作。
+	1.创建新分支dev:git branch dev
+	2.切换到分支dev：git checkout dev   1+2:git checkout -b dev
+	3.查看分支：git branch  -- 在本分支上操作提交
+	4.切回分支master：git checkout master
+	5.合并分支：git merge dev      -- git merge 用于合并指定分支到当前分支
+	6.删除分支：git branch -d dev
+分支冲突：两个分支都修改了同一个地方
+	手动修改冲突并重新提交
+-------------------------------分支管理策略——————————————————————————》
+普通合并：合并分支时，如果可能GIT会使用Fast forward模式，但这种模式下，删除分支后，会丢掉分支信息，
+	如果要强制禁用Fast forward模式，Git就会在merge时生成一个新的commit。可以从分支历史上看出分支信息
+Bug分支：git stash 将当前工作现场储存起来，等以后恢复现场后继续工作 -- 可多次暂存
+	切换到另一个分支处理Bug
+	合并分支
+	切换回原来分支，查看工作区是干净的，查看stash：git stash list
+	恢复:
+		方法一：git stash apply stash@{n}   恢复后stash内容不删除，git stash drop来删除
+		方法二：git stash pop    stash@{n}  恢复后把stash内容也删除了
+Feature分支：创建新分支写新功能add后准备提交时取消
+	使用 git branch -D fenzhi_name 强制删除
+查看分支图：
+	git log --graph --pretty=oneline --abbrev-commit
+-------------------------------多人协作——————————————————————————》
+克隆远程仓库时，Git自动把本地的master分支与远程的master分支对应起来，远程仓库默认名为origin
+查看远程库信息：git remote [-v]
+推送分支：          git push origin [master]指定分支
+创建远程dev分支：git checkout -b dev origin/dev
+提交冲突：	有人提交dev分支后再提交会出现冲突，需要先pull下来合并后再推送
+Rebase:	git rebase 可将提交图变成一条直线，
+	优点：使我们在查看历史提交的变化时更容易
+	缺点：本地的分差提交已经被修改过了	
+-------------------------------标签管理——————————————————————————》
+标签：是版本库的快照，但其实就是指向某个commit的指针
+创建标签：1.切换到需要打标签的分支上 git checkout [master]   
+	2.打标签 git tag [v1.0]  -----默认打在最新提交的commit上，还可以带说明git tag -a v1.0 -m "说明" [sdf324]
+		打在之前的commit上：1.找到历史提交的commit id     git log --pretty=oneline --abbrev-commit
+				  2.git tag v*.** [fs234ad]
+查看所有标签：git tag ----按字母顺序排序
+查看标签信息：git show [tagname]
+删除标签：创建的标签都只存储在本地，不会自动推送到远程，可以在本地安全删除 git tag -d v1.0
+	删除远程标签：1.先删除本地git tag -d v1.0
+			2.远程删除 git push origin :refs/tags/v1.0
+推送标签:	git push origin tagname     ---一次性推送尚未推送到远程的本地标签 git push origin --tags
+-------------------------------GitHub——————————————————————————》
+在GitHub上，可以FORK任意开源仓库
+自己拥有FORK后的仓库的推送权
+可以推送pull request给官方仓库来贡献代码
+-------------------------------使用码云——————————————————————————》
+上传SSH公钥：.ssh/id_rsa.pub
+创建项目
+本地关联码云：git remote add origin git@gitee.com:youname/ckname.git
+删除关联远程库：git remote rm [origin] 关联时指定的名字
+同时关联GitHub和码云：
+	1.删除当前关联 git remote rm origin
+	2.关联GitHub   git remote add github git@github.com:hn9527/learngit.git --注意名字改为github
+	3.关联码云       git remote add gitee git@gitee.com:hn9527/learngit.git      --注意名字改为gitee
+	4.推送时注意名字 git push github master 或 git push gitee master
+-------------------------------自定义Git——————————————————————————》
+显示颜色：git config --global color.ui true
+忽略特殊文件：在git工作目录下新建.gitignore文件，然后把要忽略的文件名写进去，Git就会自动忽略这些文件
+配置别名：git config --global alias.[用于替换的缩略词] 要替换的命令词   
+	例如：git config --global alias.st status --可使用 git st 替代 git status
+配置一个git last:git config --global alias.last 'log -1'
+配置一个git lg: git config --global alias.lg "log --color --graph --pretty=format:'%Cred%h%Creset -%C(yellow)%d%Creset %s %Cgreen(%cr) %C(bold blue)<%an>%Creset' --abbrev-commit"
+配置Git的时候，加上--global是针对当前用户起作用的，如果不加，那只针对当前的仓库起作用。
+配置文件路径：.git/config
+-------------------------------搭建Git服务器——————————————————————————》
+用于不想公开源代码，又不想交保护费
+1.安装git	 
+	sudo apt-get install git
+2.创建git用户
+	sudo adduser git
+3.创建证书登陆：
+	收集需要登陆的用户的公钥即id_rsa.pub文件，导入到/home/git/.ssh/authorized_keys文件中，一行一个
+4.初始化git仓库
+	选定一个目录作为Git仓库，假定为/srv/sample.git ，在此目录下输入命令：sudo git init --bare sample.git
+	修改owner为git；sudo chown -R git:git sample.git
+5.禁用shell登陆
+	修改/etc/passwd文件中git:x:1001:1001:,,,:/home/git:/bin/bash为git:x:1001:1001:,,,:/home/git:/usr/bin/git-shell
+6.克隆远程仓库：
+	各个用户克隆： git clone git@server:/srv/sample.git

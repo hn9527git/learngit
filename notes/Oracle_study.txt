@@ -1,0 +1,238 @@
+﻿docker 部署 oracle:!!!
+	拉取镜像：docker pull registry.aliyuncs.com/helowin/oracle_11g
+		报错no space left on device-- https://blog.csdn.net/qijian2003122/article/details/82886989
+		报错docker-runc not installed on system-- https://www.cnblogs.com/cxbhakim/p/8862758.html
+		报错exec: "docker-proxy": executable file not found in $PATH-- https://www.cnblogs.com/cxbhakim/p/9149596.html
+	启动容器：docker run -d --name oracle_11g -p 1521:1521 registry.aliyuncs.com/helowin/oracle_11g
+		报错端口被占用 docker run -d --name oracle_11g -p 5000:1521 registry.aliyuncs.com/helowin/oracle_11g
+	进入容器： docker exec -it 容器ID /bin/bash
+	加载环境：source /home/oracle/.bash_profile
+	登陆：	sqlplus /nolog
+		connect /as sysdba 到这里就可以进行您想要的任何操作了
+	容器系统用户 root密码：helowin
+	修改密码：alter user 用户 identified by mima;
+	scott解锁：alter user scott account unlock;
+	数据卷启动容器用于保存数据：-- docker run -d -p 8888:8888 -p 5001:1521 -v /data/oracle:/u01/app/oracle registry.aliyuncs.com/helowin/oracle_11g 
+	远程连接：
+		1.查看服务被映射本地端口IP
+		2.使用公网连接，并设置sid，本例中sid为helowin
+……………………………………………………………………………………………………………………………………………………………………………………………………………………………………………………………………………………………………
+增加：
+	insert into table_name [列名1，...] values(值1,...)；
+	//字符串要加单引号
+	//日期：当前日期（SYSDATE()）TO_DATE('2019-3-12','yyyy-mm-dd')转换
+修改：
+	UPDATE 表名称 SET 字段名=值，...【WHERE ...】
+	//数据库更新时，其他用户不能针对当前的数据进行任何操作
+删除：
+	DELETE FROM 表名称 [where ...] [in (...)] ...
+	//不加条件 则删除整张表
+	//物理删除：delete；极其危险
+	//逻辑删除：增加flag字段，删除置0，没删置1，查询时加一个where字句；比较安全
+回滚：
+	rollback;
+事务处理：
+	只支持数据更新操作；DDL不支持事务处理，且执行DDL时或更换用户时或退出数据库时所有事务自动提交
+	原子操作，要么同时完成，要么同时失败
+	指令放在缓冲区中
+	执行commit操作，更新才会真正执行；若是有问题，rollback回滚；--缓冲区清空
+死锁：
+	每个session有自己独立的事务处理
+	A:更新myemp表，无commit和rollback；
+	B:更新同样数据时，阻塞等待A的结果，
+数据伪列：
+	1.ROWNUM
+		行号：对查询的每一条记录自动编号，动态生成，不固定
+	作用：	取出第一行记录；##只有where rownum=1 可用，其他值不能用；
+		取出前N行记录；where rownum<=n，
+		取出某连续n行： select rownum ro(一定要使用别名),ename from emp;返回的结果集中rownum为一列数据，
+				然后再使用where  temp.ro>5 子句 限定范围
+	2.ROWID//数据分析上
+		行ID：进行数据保存时，所有的表都有一个物理地址编号，可通过ROWID查询
+		ROWID：数据对象编号+数据保存文件编号+数据保存块号+数据保存行号
+		可通过ROWID查询到唯一的数据
+		删除重复记录，只保留一条添加时间最早的记录：
+			 select a,b,c,MIN(ROWID) from tab group by a,b,c ; 得到每个初始数据ROWID，然后删除//not in;
+建表：
+	create table mmm(id number,...,...);
+数据字典：
+	用户级别：user_*开头
+	管理员级别：dba_*开头
+	全部级别：all_*开头
+表重命名：
+	RENAME 旧表名称 TO 新表名称
+截断表：
+	直接将所占用的数据空间删除，无法回滚；
+	TRUNCATE TABLE 表明；
+复制表：
+			    |-----子查询------|
+	create table myemp as select * from emp;//仅Oracle支持
+	复制表结构，不复制数据：
+		create table myemp as select * from emp where 1=2;
+删除表：
+	drop table 表名称；//不提供全部删除表------>进入回收站
+			删除回收站的一张数据表：PURGE TABLE 表名；
+			清空回收站：PURGE RECYCLEBIN;
+	drop table 表名称 PURGE;强制删除，不进入回收站。
+闪回技术：FLASH BACK
+	删除数据表后，并未真正删除，而是存在回收站中，名为BIN*
+	查看回收站：SHOW RECYCLEBIN;或者 SELECT * FROM USER_RECYCLEBIN;
+	恢复被删除的表：FLASHBACK TABLE 表名 	TO BEFORE DROP;
+修改表结构：--了解!!!
+	添加列：ALTER TABLE 表名称 ADD（列名称,类型[DEFAULT 默认值]，。。。）;
+	修改列:  ALTER TABLE 表名称 MODIFY（列名称,类型[DEFAULT 默认值]，。。。）;
+	删除列：ALTER TABLE 表名称 DROP COLUMN 列名称
+非空约束：
+	NOT NULL
+唯一约束：
+	UNIQUE -- NULL不受此限制
+	设置约束名称：CONSTRAINT UK_ename UNIQUE(ename);
+查看约束对象：
+	select * from user_constraints;
+主键约束：
+	唯一约束+非空约束+不为空;
+	CONSTRAINT pk_id PRIMARY KEY(mid);
+检查约束：
+	影响性能
+	在数据更新前设置一些数据过滤条件
+	例：age NUMBER(3) , CONSTRAINT ck_age CHECK (age BETWEEN 0 AND 150);
+外键约束：
+	CONSTRAINT fk_mid FOREIGN KEY(mid) REFERENCES other_tab(mid);
+	限制一:删除父表前必须首先删除子表
+			互有外键，则强制删除：DROPTABLE tab_name CASCADE CONSTRAINT;
+	限制二:父表中作为字表的外键字段，必须设置为主键约束或唯一约束
+	限制三：级联删除：删除父表某条数据时，子表相关数据也删除
+					设置外键时加上 ON DELETE CASCADE
+			级联更新：删除父表某条数据时，子表相关数据设置为空
+					设置外键时加上 ON DELETE SET NULL
+约束修改：
+	控制约束，约束要有名字
+		alter table add CONSTRAINT -------
+		alter table drop CONSTRAINT 约束名称
+	修改非空约束要使用修改表结构语句；
+序列：
+	oracle 12c 版本之前不支持自动增长数据类型
+	CREATE SEQUENCE 序列名称<myemp>;
+	myseq.nextval 序列的下一个值；
+	myseq.currval 序列的当前值；
+	缓存：提升代码性能，缓存了二十个数据
+	序列为数据表中某个字段自动编号，不能直接写在创表语句中，必须使用insert语句；
+	例：insert into tab_name(id,name) values (myseq.nextval,'xxx');
+	拓展：1.修改序列步长：+ INCREMENT BY n;
+		2.修改序列开始值：+ START WITH 666666;
+		3.设置循环序列：+ MINVALUE 1 MAXVALUE 9 CYCLE [CACHE 3];CACHE为缓存个数；
+同义词：
+	即设置别名，例如，Oracle将sys.dual 设置别名为 dual;
+	CREATE [PUBLIC] SYNOMYN 同义词名字 FOR 用户名.表名称
+	加上 public 才能被所有用户使用
+	删除：drop SYNOMYN 同义词名字
+	
+###########################################################################################################################################
+DML:数据操作语言
+DDL:数据定义语言
+DCL:数据库控制语言
+oracle中文占三个字符
+查看用户下所有的表:
+	select * from tab;
+更改某列显示宽度：
+	col 列名 for a10;
+输出内容连接：
+	select语句中可以使用||连接字符串或字段
+区分大小写：
+	orcle中数据是区分大小写的
+模糊查询LIKE：
+	------可用于任何数据类型，不止是字符串
+	‘_’:匹配任意的一位字符
+	‘%’：匹配任意的零位或一位或多位字符
+排序：
+	order by 字段名 [desc] #默认增序 ，加desc为降序，最后执行
+	order by 是唯一可以使用select 语句中的别名的命令
+￥￥￥￥￥￥￥￥￥￥￥￥￥￥￥￥￥￥￥￥￥￥￥￥￥￥￥￥￥￥￥￥￥￥￥￥￥￥￥￥￥￥￥￥￥￥￥￥￥￥￥￥￥￥￥￥￥￥￥￥￥￥￥￥￥￥￥￥￥
+单行函数：
+initcap	首字母大写，其他小写
+length	字符串长度
+SUBSTR	截取字符串 select substr('wangjitao',5,5) from dual;
+ROUND	四舍五入 无第二个参数取整无小数  select round(265.123685,4) from dual;
+TRUNC	不进位 	select trunc(12.546) from dual;
+MOD	求模	select mod(10,4) from dual;
+日期函数：
+日月年	select sysdate from dual;含有时间默认只显示日月年
+时间戳	select systimestamp from dual;
+ADD_MONTHS	select add_months(sysdate,4) from dual;
+MONTHS_BETWEEN		select months_between(sysdate,hiredate) from emp;
+LAST_DAY		SELECT LAST_DAY(SYSDATE) FROM DUAL;
+NEXT_DAY	select next_day(sysdate,'星期三') from dual;
+NVL	将NULL转换为0	select (sal+NVL(comm,0))*12 from emp;
+DECODE	类似if else 	SELECT ENAME,DECODE(JOB,'CLERK','BANSHIYUAN','SALESMAN','XIAOSHOU') FROM EMP;
+多表查询时笛卡儿积不可避免，数据量大时勿用。
+cross join：	select * from dept cross join emp;
+	交叉连接，用于产生笛卡儿积
+natural join：	select * from dept natural join emp;
+	自动使用相同字段消除笛卡儿积，重复内容不再显示
+using:	select * from dept join emp using(deptno);
+	如果有多个相同字段，使用using指定字段
+on:	select * from emp e join salgrade s on(e.sal between s.losal and s.hisal);
+	如果没有关联字段则可以使用on字句设置条件
+外连接：left join / right join / full join #sql1999
+union:
+	连接查询结果，所查字段必须相同，结果相同只显示一次；
+union all:
+	显示所有结果，包括相同的；
+intersect:
+	只显示相同部分，属于交集；
+minus:
+	第一个查询结果减去第二个查询结果，属于差集；
+统计查询：
+count;
+	count(*):准确返回数据个数
+	count(ziduan):不统计为null的数据个数
+	count(distinct字段):统计消除重复字段后的数据个数
+ANY:
+	=:时与IN一样
+	>或者<：范围比较，比最大值大，比最小值小
++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+Oracle
+启动：
+	sqlplus /nolog       #用system身份登录
+	conn / as sysdba   #切换为超级管理员sys用户
+	startup			   #启动实例
+	quit			   #退出
+	lsnrctl start      #启动监听
+上下键乱码：
+	安装readline：yum install readline*
+	下载rlwrap：https://pan.baidu.com/s/1kVn1krX
+	安装rlwrap: 
+		1）tar -zxvf rlwrap-0.30.tar.gz
+		2）cd rlwrap-0.30  
+		3)./configure  
+		4)make  5)make install
+	设置alias:vim /home/oracle/.bash_profile
+		alias sqlplus='rlwrap sqlplus'
+		alias rman='rlwrap rman'
+关闭：
+	lsnrctl stop
+	sqlplus /nolog
+	shutdown immediate
+	quit
+登录:
+	1 sqlplus 
+	2 sqlplus /nolog
+	3 sqlplus name/mima
+更换用户：#超级管理员 sys(as sysdba) #普通管理员 system 
+		  #普通用户 scott  		     #大数据用户 -/-	
+	conn name/mima 如果是sys用户，需要加上 as sysdba;
+	例如：sqlplus->sys as sysdba->密码->登陆成功
+		或 conn sys as sysdba/密码；
+调用系统命令：
+	HOST 命令 
+格式化：
+	set linesize 300;--全局
+	set pagesize 30;--全局
+	COL 列名 FOR An(宽度) --单列
+ed: Windows下
+	ed name 自动寻找name.sql导入
+	@name 导入
+NOT IN 里面有NULL：not in (xx,xx,null)
+	无返回值
+虚拟表：#不需要查表时必须用
+	dual
