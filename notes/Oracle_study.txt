@@ -126,6 +126,72 @@
 	CREATE [PUBLIC] SYNOMYN 同义词名字 FOR 用户名.表名称
 	加上 public 才能被所有用户使用
 	删除：drop SYNOMYN 同义词名字
+视图：
+	为Scott用户授予创建视图的权限
+	-- conn sys/24641314 as sysdba;
+	-- grant create view to scott;
+	创建视图：create or replace view myview as select语句;
+	更新视图：创建简单(一张表)视图后，可以更改视图条件-- update myview set xx=xx where nn=nn;
+	WITH CHECK OPTION:加上后，视图创建条件不能再更新。
+	-- 更新非创建条件：可以但不合理
+	定义只读视图：+ WITH READ ONLY;则不能修改（建议）；
+	删除视图：drop view myview;
+消耗资源显示：
+	set autotrace on;
+索引：
+	-- 提升数据的查询性能。
+	创建：CREATE INDEX 索引名 ON 用户名.表名(字段名);
+	索引字段值改变，索引改变--》消耗大量内存空间
+用户管理：DCL
+	创建用户：CREATE UESR TANGYUAN IDENTIFIED BY WUGUI;
+	系统权限：1.CREATE SESSION  2.CREATE TABLE
+	-- 授权(CREATE SESSION)：GRANT CREATE SESSION TO TANGYUAN;
+	-- 授权(创建表)：GRANT CREATE TABLE TO TANGYUAN;
+	角色:oracle提供两个角色，CONNECT角色 RESOURCE角色；
+	-- 权限或角色发生了变化需要重新登陆。
+	修改密码：alter user tangyuan identified by mima;
+	-- 登陆时修改密码：alter user tangyuan passwd expire;
+	锁定用户：alter user tangyuan account lock;
+	-- 解锁用户：alter user tangyuan account unlock;
+	授予用户操作对象权限给其他用户：
+	-- 对象权限只有四种：1.INSERT 2.UPDATE 3.SELECT 4.DELETE;
+	-- 授予：GRANT SELECT,INSERT ON EMP TO TANGYUAN;
+	-- 撤回权限：REVOKE 权限 FROM TANGYUAN;
+	-- 删除用户：DROP USER TANGYUAN CASCADE;
+数据库备份：
+	数据的导出与导入：
+	针对一个用户的数据实现备份--只适合小数据
+	-- 导出数据：
+		1。建立备份文件夹
+		2.cmd 进入该目录
+		3.输入exp命令-》输name/mima--》缓冲区大小 --》导出文件--》导出权限--》导出数据表--》压缩区
+	-- 导入数据：
+		1.cmd 进入目录
+		2.输入imp命令 按提示操作
+	冷备份：
+		即数据库服务停止，专门去备份。
+		· 控制文件：v$controlfile
+		· 重做日志文件： v$logfile
+		· 数据文件(表空间)：v$datafile
+		· 核心配置文件(pfile):SHOW PARAMETER pfile
+		1.使用sys登陆
+		2.找到控制文件信息
+		3.找到重做日志文件
+		4.找到数据文件
+		5.找到核心配置文件
+		6.记录所有文档位置
+		7.关闭数据库 SHUTDOWN IMMEDIATE
+		8.拷贝出以上的文件到指定的备份文件目录
+		9.重新启动数据库服务 STARTUP
+	热备份：不关机备份 
+
+
+
+
+
+
+
+
 	
 ###########################################################################################################################################
 DML:数据操作语言
