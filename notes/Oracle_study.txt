@@ -47,6 +47,7 @@
 		取出前N行记录；where rownum<=n，
 		取出某连续n行： select rownum ro(一定要使用别名),ename from emp;返回的结果集中rownum为一列数据，
 				然后再使用where  temp.ro>5 子句 限定范围
+				例： select * from (select rownum ro,ename,sal from emp) where ro between 2 and 6;
 	2.ROWID//数据分析上
 		行ID：进行数据保存时，所有的表都有一个物理地址编号，可通过ROWID查询
 		ROWID：数据对象编号+数据保存文件编号+数据保存块号+数据保存行号
@@ -63,7 +64,7 @@
 	RENAME 旧表名称 TO 新表名称
 截断表：
 	直接将所占用的数据空间删除，无法回滚；
-	TRUNCATE TABLE 表明；
+	TRUNCATE TABLE 表名；
 复制表：
 			    |-----子查询------|
 	create table myemp as select * from emp;//仅Oracle支持
@@ -71,12 +72,12 @@
 		create table myemp as select * from emp where 1=2;
 删除表：
 	drop table 表名称；//不提供全部删除表------>进入回收站
+			查看回收站：SHOW RECYCLEBIN;或者 SELECT * FROM USER_RECYCLEBIN;
 			删除回收站的一张数据表：PURGE TABLE 表名；
 			清空回收站：PURGE RECYCLEBIN;
 	drop table 表名称 PURGE;强制删除，不进入回收站。
 闪回技术：FLASH BACK
 	删除数据表后，并未真正删除，而是存在回收站中，名为BIN*
-	查看回收站：SHOW RECYCLEBIN;或者 SELECT * FROM USER_RECYCLEBIN;
 	恢复被删除的表：FLASHBACK TABLE 表名 	TO BEFORE DROP;
 修改表结构：--了解!!!
 	添加列：ALTER TABLE 表名称 ADD（列名称,类型[DEFAULT 默认值]，。。。）;
@@ -90,7 +91,7 @@
 查看约束对象：
 	select * from user_constraints;
 主键约束：
-	唯一约束+非空约束+不为空;
+	唯一约束+非空约束;
 	CONSTRAINT pk_id PRIMARY KEY(mid);
 检查约束：
 	影响性能
@@ -148,6 +149,7 @@
 	-- 授权(CREATE SESSION)：GRANT CREATE SESSION TO TANGYUAN;
 	-- 授权(创建表)：GRANT CREATE TABLE TO TANGYUAN;
 	角色:oracle提供两个角色，CONNECT角色 RESOURCE角色；
+	授予角色权限：GRANT CONNECT TO USER;  GRANT RESOURCE TO USER;
 	-- 权限或角色发生了变化需要重新登陆。
 	修改密码：alter user tangyuan identified by mima;
 	-- 登陆时修改密码：alter user tangyuan passwd expire;
@@ -184,15 +186,14 @@
 		8.拷贝出以上的文件到指定的备份文件目录
 		9.重新启动数据库服务 STARTUP
 	热备份：不关机备份 
-
-
-
-
-
-
-
-
-	
+设计范式：
+	第一设计范式：数据表中的每个字段都不可再分。
+					使用基本数据类型，单表。
+	第二设计范式：数据表中不存在非关键字段对任意一候选关键字段的部分函数依赖。
+					字段之间不应该有数学关系，由几个字段可以成功推演出的一个字段不应存在。
+					简单理解：多对多建表。
+	第三设计范式:数据表中不存在非关键字段对任意一候选关键字段的传递函数依赖。
+					一对多建表。优先考虑。
 ###########################################################################################################################################
 DML:数据操作语言
 DDL:数据定义语言
@@ -227,9 +228,11 @@ MOD	求模	select mod(10,4) from dual;
 ADD_MONTHS	select add_months(sysdate,4) from dual;
 MONTHS_BETWEEN		select months_between(sysdate,hiredate) from emp;
 LAST_DAY		SELECT LAST_DAY(SYSDATE) FROM DUAL;
-NEXT_DAY	select next_day(sysdate,'星期三') from dual;
+NEXT_DAY	select next_day(sysdate,[0-6]) from dual;下一个星期几是几号。
 NVL	将NULL转换为0	select (sal+NVL(comm,0))*12 from emp;
-DECODE	类似if else 	SELECT ENAME,DECODE(JOB,'CLERK','BANSHIYUAN','SALESMAN','XIAOSHOU') FROM EMP;
+DECODE	类似if else 	SELECT ENAME,DECODE(JOB,'CLERK','BANSHIYUAN','SALESMAN','XIAOSHOU') 
+	FROM EMP;
+
 多表查询时笛卡儿积不可避免，数据量大时勿用。
 cross join：	select * from dept cross join emp;
 	交叉连接，用于产生笛卡儿积
@@ -256,6 +259,7 @@ count;
 ANY:
 	=:时与IN一样
 	>或者<：范围比较，比最大值大，比最小值小
+	例：select ename,sal from emp where sal > any(select sal from emp where ename='SMITH');
 +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 Oracle
 启动：
