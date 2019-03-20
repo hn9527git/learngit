@@ -8,6 +8,8 @@ Git：分布式版本控制系统
 	git commit -m "注释"
 Git当前状态：
 	git status
+Windows下git bash 不显示中文：
+	git config --global core.quotepath false
 查看修改：
 	git diff filename
 丢弃修改：
