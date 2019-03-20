@@ -5,11 +5,63 @@
 	交换机：高级集线器，可点对点连接（mac地址）
 	网关：两个不同网络之间的翻译
 	网桥：连接两个不同的网络
+IP:  IPV4
+	4个字节32位开头为：
+	0：A类地址0-127
+	10：B类地址128-191
+	110：C类地址192-223
+端口号：
+	0-65535都可
+	0-1023是知名服务端口号不能重复
+	所有知名服务使用的端口都定义在/etc/services文件中；
+	TCP和UDP套接字不会共用端口号，所以允许二者相重复。
+地址信息结构体：
+	struct sockaddr_in
+	{
+		sa_family_t		sin_family; //地址族
+		uint16_t		sin_port;	//16位TCP/IP端口号（网络字节序）
+		struct in_addr 	sin_addr;	//32位IP地址（同上）
+		char			sin_zero[8];//不使用
+	}
+	struct in_addr
+	{
+		in_addr_t 		s_addr;		//32位IPv4地址
+	}
+	bind函数第二个参数期望得到sockaddr结构体
+	struct sockaddr
+	{
+		sa_family_t 	sin_family;
+		char 			sa_data[14];//地址信息
+	}
+	其中sa_data[14]，保存的地址信息需要包含IP地址和端口号，剩余补充0，非常麻烦，
+	所以有了新的结构体sockaddr_in
+字节序转换:
+	unsigned short htons(unsigned short);//h代表（host）字节序
+	unsigned short ntohs(unsigned short);//n代表（network）字节序
+	unsigned long  htonl(unsigned long); //s代表short
+	unsigned long  ntohl(unsigned long); //l代表long
+	不管大小端全部转换为网络字节序（大端模式）
+网络地址转换：
+	sockaddr_in中保存的地址信息的成员为32位整形数，为了分配IP地址，需要转换为
+		32位整数形数据。即192.168.61.129转换为32位1或0；
+	in_addr_t(unsigned long) inet_addr(const char * string);成功返回32位大端序整数型数。
+	int inet_aton(const char * string, struct in_addr * addr);直接存入addr中，常用。
+	将整数型IP地址转换为点分十进制字符串的函数：
+	char * inet_ntoa(struct in_addr adr);成功返回转换的字符串地址值失败返回-1.
 socket
 	是对网络底层的一个封装，可以看成一个文件。
 	<对方IP，对方PORT,本地IP，本地PORT>
 	ip：找到这个网络节点
 	port：用来识别该网络节点上的某个应用
+C/S准备工作异同:
+	服务端：请把IP192.168.61.129 端口2222的数据传给我。
+	客户端：请连接到IP192.168.61.129 端口22222.
+	服务器端的准备工作通过bind函数完成
+	客户端的准备工作通过connect函数完成。
+	服务端的sockaddr_in结构体初始化为服务器端IP和套接字的端口号，然后bind；
+	客户端的sockaddr_in结构体初始化为要与之连接的服务器端套接字的IP和端口号，然后connect；
+INADDR_ANY:
+	自动获取运行服务端的计算机IP地址。一般用于服务端。
 方式
 	SOCK_STREAM:使用TCP协议，可靠传输
 	SOCK_DGRAM:使用UDP协议，不可靠协议
@@ -33,8 +85,22 @@ socket
 创建接电话连接过程：
 1.socket函数创建套接字（安装电话机）
 	int socket(int domain,int type,int protocol);-- 返回描述符
+	-- domain:套接字使用的协议族信息。
+		AF_INET代表IPv4互联网协议族。
+		AF_INET6代表IPv6互联网协议族。
+	-- type:套接字数据传输类型信息。
+		SOCK_STREAM代表面向连接的套接字(TCP)，需要建立一对一的连接，
+			数据无边界，发送数据存内部缓冲，
+			可一次读完也可多次读完。强调有效顺序完整。丢失或损毁都重传。
+		SOCK_DGRAM代表面向消息的套接字(UDP)，强调快速而非顺序，
+			传送数据可能丢失或损毁，有数据边界，限制每次传输的数据大小。
+	-- protocol:计算机通信中使用的协议信息。
+		一般为0，除非同一协议族中存在多个数据传输方式相同的协议。
 2.bind函数分配IP地址和端口号（分配电话号码）
-	int bind(int sockfd,struct sockaddr *myaddr,socklen_t addrlen);-- 返0
+	int bind(int sockfd,(struct sockaddr *)myaddr,socklen_t addrlen);-- 返0
+	-- sockfd:要分配地址信息的套接字文件描述符
+	-- myaddr:存有地址信息的结构体变量地址值
+	-- addelen:第二个结构体变量的长度
 3.listen函数转可接收请求状态（连线使之可以接听）
 	int listen(int sockfd,int backlog);-- 返0 
 4.accept函数受理连接请求（电话铃响拿起接听）
@@ -58,6 +124,5 @@ socket
 	int connect(int sockfd,struct sockaddr *serv_addr,socklen_t addrlen);-- 返0
 	
 TCP:
-	所有知名服务使用的端口都定义在/etc/services文件中
 	三次握手，四次挥手
 	
