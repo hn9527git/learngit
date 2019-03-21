@@ -1,127 +1,133 @@
-Éú³É¹ý³Ì£º
-	1.½øÈëÄ¿Â¼£¬qmake -project Éú³ÉÒ»¸öÓëÆ½Ì¨ÎÞ¹ØµÄÏîÄ¿ÎÄ¼þhello.pro
-	2.qmake hello.pro Éú³ÉÓëÆ½Ì¨Ïà¹ØµÄmakefileÎÄ¼þ
-	3.make ¹¹½¨¸Ã³ÌÐò
-Îö¹¹£º
-	Qt»áÔÚÉ¾³ý¸¸¶ÔÏóµÄÊ±ºò×Ô¶¯É¾³ýÆäËùÊôµÄËùÓÐ×Ó¶ÔÏó£¬¼´ËùÓÐ×ÓËï´°¿Ú²¿¼þºÍ×Ó²¼¾Ö
-²¼¾Ö£º
-	µ±½«×Ó²¼¾Ö¶ÔÏóÌí¼Óµ½¸¸²¼¾Ö¶ÔÏóÖÐÊ±£¬×Ó²¼¾Ö¶ÔÏó¾Í»áÖØÐÂ¶¨Òå×Ô¼ºµÄ¸¸¶ÔÏó¡£Àý£¬½«Ö÷²¼¾Ö×°µ½¶Ô»°¿òÖÐÊ±£¬
-	Ëü¾Í³ÉÎª¶Ô»°¿òµÄ×Ó¶ÔÏóÁË£¬ÓÚÊÇËûËùÓÐµÄ×Ó´°¿Ú²¿¼þ¶¼»áÖØ¶¨Òå×Ô¼ºµÄ¸¸¶ÔÏó£¬´Ó¶ø±ä³É¶Ô»°¿òÖÐµÄ×Ó¶ÔÏó¡£
-Ä¬ÈÏ°´Å¥£º
-	setDefault(ture)£¬¾ÍÊÇµ±ÓÃ»§°´ÏÂEnter¼üÊ±ÄÜ¹»°´ÏÂ¶ÔÓ¦µÄ°´Å¥
-»ï°é(buddy):
-	¾ÍÊÇÒ»¸ö´°¿Ú²¿¼þ£¬µ±°´ÏÂÉèÖÃÕßµÄ¿ì½Ý¼üÊ±½ÓÊÕ½¹µã¡£
-	QT¶ÔÏóÖÐÖ»ÓÐQLabel±êÇ©¶ÔÏó²Å¿ÉÒÔÓÐ»ï°é´°¿Ú²¿¼þ£¬
-		Ò²Ö»ÓÐµ±QLabel¶ÔÏó¾ßÓÐ¿ì½Ý¼üÊ±£¬»ï°é¹ØÏµ²ÅÓÐÐ§¡£ 
-&£º
-	¸Ã·ûºÅºó±ßµÄ×Ö·ûÓëAlt×éºÏÎª¸Ã¿Ø¼þµÄ¿ì½Ý¼ü
-Q_OBJECT£º
-	¶ÔÓÚËùÓÐ¶¨ÒåÁËÐÅºÅºÍ²ÛµÄÀà£¬ÔÚÀà¶¨Òå¿ªÊ¼´¦µÄ Q OBJE¿Úºê¶¼ÊÇ±ØÐèµÄ¡£
-¹ØÓÚtr()º¯Êý£º
-	×Ö·û´®ÖÜÎ§µÄtr()º¯Êýµ÷ÓÃÊÇ°ÑËüÃÇ·­Òë³ÉÆäËûÓïÑÔµÄ±ê¼Ç
+ï»¿ç”Ÿæˆè¿‡ç¨‹ï¼š
+	1.è¿›å…¥ç›®å½•ï¼Œqmake -project ç”Ÿæˆä¸€ä¸ªä¸Žå¹³å°æ— å…³çš„é¡¹ç›®æ–‡ä»¶hello.pro
+	2.qmake hello.pro ç”Ÿæˆä¸Žå¹³å°ç›¸å…³çš„makefileæ–‡ä»¶
+	3.make æž„å»ºè¯¥ç¨‹åº
+æžæž„ï¼š
+	Qtä¼šåœ¨åˆ é™¤çˆ¶å¯¹è±¡çš„æ—¶å€™è‡ªåŠ¨åˆ é™¤å…¶æ‰€å±žçš„æ‰€æœ‰å­å¯¹è±¡ï¼Œå³æ‰€æœ‰å­å­™çª—å£éƒ¨ä»¶å’Œå­å¸ƒå±€
+å¸ƒå±€ï¼š
+	å½“å°†å­å¸ƒå±€å¯¹è±¡æ·»åŠ åˆ°çˆ¶å¸ƒå±€å¯¹è±¡ä¸­æ—¶ï¼Œå­å¸ƒå±€å¯¹è±¡å°±ä¼šé‡æ–°å®šä¹‰è‡ªå·±çš„çˆ¶å¯¹è±¡ã€‚ä¾‹ï¼Œå°†ä¸»å¸ƒå±€è£…åˆ°å¯¹è¯æ¡†ä¸­æ—¶ï¼Œ
+	å®ƒå°±æˆä¸ºå¯¹è¯æ¡†çš„å­å¯¹è±¡äº†ï¼ŒäºŽæ˜¯ä»–æ‰€æœ‰çš„å­çª—å£éƒ¨ä»¶éƒ½ä¼šé‡å®šä¹‰è‡ªå·±çš„çˆ¶å¯¹è±¡ï¼Œä»Žè€Œå˜æˆå¯¹è¯æ¡†ä¸­çš„å­å¯¹è±¡ã€‚
+é»˜è®¤æŒ‰é’®ï¼š
+	setDefault(ture)ï¼Œå°±æ˜¯å½“ç”¨æˆ·æŒ‰ä¸‹Enteré”®æ—¶èƒ½å¤ŸæŒ‰ä¸‹å¯¹åº”çš„æŒ‰é’®
+ä¼™ä¼´(buddy):
+	å°±æ˜¯ä¸€ä¸ªçª—å£éƒ¨ä»¶ï¼Œå½“æŒ‰ä¸‹è®¾ç½®è€…çš„å¿«æ·é”®æ—¶æŽ¥æ”¶ç„¦ç‚¹ã€‚
+	QTå¯¹è±¡ä¸­åªæœ‰QLabelæ ‡ç­¾å¯¹è±¡æ‰å¯ä»¥æœ‰ä¼™ä¼´çª—å£éƒ¨ä»¶ï¼Œ
+		ä¹Ÿåªæœ‰å½“QLabelå¯¹è±¡å…·æœ‰å¿«æ·é”®æ—¶ï¼Œä¼™ä¼´å…³ç³»æ‰æœ‰æ•ˆã€‚ 
+&ï¼š
+	è¯¥ç¬¦å·åŽè¾¹çš„å­—ç¬¦ä¸ŽAltç»„åˆä¸ºè¯¥æŽ§ä»¶çš„å¿«æ·é”®
+Q_OBJECTï¼š
+	å¯¹äºŽæ‰€æœ‰å®šä¹‰äº†ä¿¡å·å’Œæ§½çš„ç±»ï¼Œåœ¨ç±»å®šä¹‰å¼€å§‹å¤„çš„ Q OBJEå£å®éƒ½æ˜¯å¿…éœ€çš„ã€‚
+qDebug()ï¼š
+	ä¾¿åˆ©ä½¿ç”¨ï¼š#define cout qDebug()<<"["<<__FILE__<<":"<<__LINE__<<"]"
+	ç¦ç”¨ï¼š
+	åœ¨proæ–‡ä»¶ä¸­åŠ ä¸Š DEFINES +=QT_NO_DEBUG_OUTPUT
+å…³äºŽtr()å‡½æ•°ï¼š
+	å­—ç¬¦ä¸²å‘¨å›´çš„tr()å‡½æ•°è°ƒç”¨æ˜¯æŠŠå®ƒä»¬ç¿»è¯‘æˆå…¶ä»–è¯­è¨€çš„æ ‡è®°
 moc:
-	Ôª¶ÔÏó±àÒëÆ÷£¬º¬ÓÐQ_OBJECTºê±ØÐëÔËÐÐmoc
-	Ê¹ÓÃmocÀà±ØÐë¼Ì³Ð×ÔQObject,Q_OBJECTºê±ØÐë³öÏÖÔÚË½ÓÐÉùÃ÷Çø¡£
-¸´ÖÆuiÉÏµÄ¿Ø¼þ£º
-	Àý£º°´ÏÂCtrl£¬È»ºóµ¥»÷²¢ÍÏ¶¯Èº×é¿ò¼´¿É¸´ÖÆ
+	å…ƒå¯¹è±¡ç¼–è¯‘å™¨ï¼Œå«æœ‰Q_OBJECTå®å¿…é¡»è¿è¡Œmoc
+	ä½¿ç”¨mocç±»å¿…é¡»ç»§æ‰¿è‡ªQObject,Q_OBJECTå®å¿…é¡»å‡ºçŽ°åœ¨ç§æœ‰å£°æ˜ŽåŒºã€‚
+å¤åˆ¶uiä¸Šçš„æŽ§ä»¶ï¼š
+	ä¾‹ï¼šæŒ‰ä¸‹Ctrlï¼Œç„¶åŽå•å‡»å¹¶æ‹–åŠ¨ç¾¤ç»„æ¡†å³å¯å¤åˆ¶
 closeEvent():
-	QWidgetÀàµÄÒ»¹²Ðéº¯Êý£¬µ±ÓÃ»§¹Ø±Õ´°¿ÚÊ±£¬Õâ¸öº¯Êý»á±»×Ô¶¯µ÷ÓÃ
-Ä£Ì¬£º
-	µ±Ç°´°¿Ú²»¹Ø±Õ£¬ÎÞ·¨²Ù×÷ÆäËû´°¿Ú
-·ÇÄ£Ì¬£º
-	ÔËÐÐÔÚÓ¦ÓÃ³ÌÐòÖÐ¶ÔÓÚÈÎºÎÆäËû´°¿Ú¶¼¶ÀÁ¢µÄ´°¿Ú¡£
+	QWidgetç±»çš„ä¸€å…±è™šå‡½æ•°ï¼Œå½“ç”¨æˆ·å…³é—­çª—å£æ—¶ï¼Œè¿™ä¸ªå‡½æ•°ä¼šè¢«è‡ªåŠ¨è°ƒç”¨
+æ¨¡æ€ï¼š
+	å½“å‰çª—å£ä¸å…³é—­ï¼Œæ— æ³•æ“ä½œå…¶ä»–çª—å£
+éžæ¨¡æ€ï¼š
+	è¿è¡Œåœ¨åº”ç”¨ç¨‹åºä¸­å¯¹äºŽä»»ä½•å…¶ä»–çª—å£éƒ½ç‹¬ç«‹çš„çª—å£ã€‚
 @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-²¼¾Ö¹ÜÀí£º
-	È·±£´°ÌåÄÜ¹»×Ô¶¯ÊÊÓ¦ÓÚ²»Í¬µÄ×ÖÌå¡¢ÓïÑÔºÍÏµÍ³Æ½Ì¨¡£
+å¸ƒå±€ç®¡ç†ï¼š
+	ç¡®ä¿çª—ä½“èƒ½å¤Ÿè‡ªåŠ¨é€‚åº”äºŽä¸åŒçš„å­—ä½“ã€è¯­è¨€å’Œç³»ç»Ÿå¹³å°ã€‚
 	
 	
-£¤£¤£¤£¤£¤£¤£¤£¤£¤£¤£¤£¤£¤£¤£¤£¤£¤£¤£¤£¤£¤£¤£¤£¤£¤£¤£¤£¤£¤£¤£¤£¤£¤£¤£¤£¤£¤£¤£¤£¤£¤£¤£¤£¤£¤£¤£¤£¤£¤£¤£¤£¤£¤£¤£¤£¤£¤£¤£¤£¤£¤£¤£¤£¤£¤
-ÐÅºÅÓë²Û£º
+ï¿¥ï¿¥ï¿¥ï¿¥ï¿¥ï¿¥ï¿¥ï¿¥ï¿¥ï¿¥ï¿¥ï¿¥ï¿¥ï¿¥ï¿¥ï¿¥ï¿¥ï¿¥ï¿¥ï¿¥ï¿¥ï¿¥ï¿¥ï¿¥ï¿¥ï¿¥ï¿¥ï¿¥ï¿¥ï¿¥ï¿¥ï¿¥ï¿¥ï¿¥ï¿¥ï¿¥ï¿¥ï¿¥ï¿¥ï¿¥ï¿¥ï¿¥ï¿¥ï¿¥ï¿¥ï¿¥ï¿¥ï¿¥ï¿¥ï¿¥ï¿¥ï¿¥ï¿¥ï¿¥ï¿¥ï¿¥ï¿¥ï¿¥ï¿¥ï¿¥ï¿¥ï¿¥ï¿¥ï¿¥ï¿¥
+ä¿¡å·ä¸Žæ§½ï¼š
 	emit:
-		·¢ÉäÐÅºÅ£¬ºó½ÓÐÅºÅº¯Êý
-	Ò»¸öÐÅºÅ¿ÉÒÔÁ¬½Ó¶à¸ö²Û£¬µ÷ÓÃÊ±Ë³Ðò²»È·¶¨¡£
-	¶à¸öÐÅºÅ¿ÉÒÔÁ¬½ÓÍ¬Ò»¸ö²Û¡£
-	ÐÅºÅ¿ÉÒÔÁ¬½ÓÐÅºÅconnect(some,SIGNALE(),this,SIGNAL());
-	Á¬½Ó¿ÉÒÔ±»ÒÆ³ýdisconnect
-	ÐÅºÅº¯ÊýºÍ²Ûº¯Êý²ÎÊýµÄË³ÐòºÍÀàÐÍÒªÒ»Ñù£¬Èç¹ûÐÅºÅµÄ²ÎÊý¶àÓÚ²Ûº¯Êý²ÎÊý£¬Ôò¶àÓàµÄ²ÎÊý±»ºöÂÔ¡£
-¼ìÑéÆ÷Àà£º
+		å‘å°„ä¿¡å·ï¼ŒåŽæŽ¥ä¿¡å·å‡½æ•°
+	ä¸€ä¸ªä¿¡å·å¯ä»¥è¿žæŽ¥å¤šä¸ªæ§½ï¼Œè°ƒç”¨æ—¶é¡ºåºä¸ç¡®å®šã€‚
+	å¤šä¸ªä¿¡å·å¯ä»¥è¿žæŽ¥åŒä¸€ä¸ªæ§½ã€‚
+	ä¿¡å·å¯ä»¥è¿žæŽ¥ä¿¡å·connect(some,SIGNALE(),this,SIGNAL());
+	è¿žæŽ¥å¯ä»¥è¢«ç§»é™¤disconnect
+	ä¿¡å·å‡½æ•°å’Œæ§½å‡½æ•°å‚æ•°çš„é¡ºåºå’Œç±»åž‹è¦ä¸€æ ·ï¼Œå¦‚æžœä¿¡å·çš„å‚æ•°å¤šäºŽæ§½å‡½æ•°å‚æ•°ï¼Œåˆ™å¤šä½™çš„å‚æ•°è¢«å¿½ç•¥ã€‚
+æ£€éªŒå™¨ç±»ï¼š
 	QIntValidator,QDoubleValidator,QRegExpValidator
 		QRegExp reg("[A-Za-z][1-9][0-9]{0,2}");
 		this->ui->lineEdit->setValidator(new QRegExpValidator(reg,this));
-		hasAcceptableInput()Ê¹ÓÃ¹¹Ôìº¯ÊýÖÐÉèÖÃµÄ¼ìÑéÆ÷ÅÐ¶ÏÐÐ±à¼­Æ÷ÖÐµÄÄÚÈÝµÄÓÐÐ§ÐÔ
+		hasAcceptableInput()ä½¿ç”¨æž„é€ å‡½æ•°ä¸­è®¾ç½®çš„æ£€éªŒå™¨åˆ¤æ–­è¡Œç¼–è¾‘å™¨ä¸­çš„å†…å®¹çš„æœ‰æ•ˆæ€§
 QString:
-	insert()º¯Êý£ºÔÚÔ­×Ö·û´®ÌØ¶¨µÄÎ»ÖÃ²åÈëÁíÒ»¸ö×Ö·û´®
-	prepent()º¯Êý£ºÔÚÔ­×Ö·û´®µÄ¿ªÍ·²åÈëÁíÒ»¸ö×Ö·û
-	trimmend()º¯Êý£ºÒÆ³ý×Ö·û´®Á½¶ËµÄ¿Õ°×
-	simplified()º¯Êý£ºÒÆ³ý×Ö·û´®Á½¶ËµÄ¿Õ°×£¬²¢ÇÒÊ¹ÓÃµ¥¸ö¿Õ¸ñ×Ö·û´úÌæ×Ö·û´®ÖÐ³öÏÖµÄÁ¬Ðø¿Õ°××Ö·û¡£
-	NULL×Ö·û´®Ê±void* ÀàÐÍµÄ¶ÔÏó <> ¿Õ×Ö·û´®ÊÇ´óÐ¡Îª0µÄ×Ö·û´®ÀàÐÍµÄ¶ÔÏó¡£
+	insert()å‡½æ•°ï¼šåœ¨åŽŸå­—ç¬¦ä¸²ç‰¹å®šçš„ä½ç½®æ’å…¥å¦ä¸€ä¸ªå­—ç¬¦ä¸²
+	prepent()å‡½æ•°ï¼šåœ¨åŽŸå­—ç¬¦ä¸²çš„å¼€å¤´æ’å…¥å¦ä¸€ä¸ªå­—ç¬¦
+	trimmend()å‡½æ•°ï¼šç§»é™¤å­—ç¬¦ä¸²ä¸¤ç«¯çš„ç©ºç™½
+	simplified()å‡½æ•°ï¼šç§»é™¤å­—ç¬¦ä¸²ä¸¤ç«¯çš„ç©ºç™½ï¼Œå¹¶ä¸”ä½¿ç”¨å•ä¸ªç©ºæ ¼å­—ç¬¦ä»£æ›¿å­—ç¬¦ä¸²ä¸­å‡ºçŽ°çš„è¿žç»­ç©ºç™½å­—ç¬¦ã€‚
+	NULLå­—ç¬¦ä¸²æ—¶void* ç±»åž‹çš„å¯¹è±¡ <> ç©ºå­—ç¬¦ä¸²æ˜¯å¤§å°ä¸º0çš„å­—ç¬¦ä¸²ç±»åž‹çš„å¯¹è±¡ã€‚
 QMap & QHash:
-	QHash±ÈQMapµÄ²éÕÒËÙ¶È¿ì
-	QHashÈÎÒâË³Ðò´æ´¢Êý¾ÝÏî£¬QMap×ÜÊÇ°´ÕÕkey¼üË³Ðò´æ´¢Êý¾Ý
-	QHashµÄ¼üÀàÐÍKey±ØÐëÌá¹©operator==£¨£©ºÍÒ»¸öÈ«¾ÖµÄqHash£¨key£©º¯Êý£¬
-	¶øQMapµÄ¼üÀàÐÍKEY±ØÐëÌá¹©operator<()º¯Êý¡£
+	QHashæ¯”QMapçš„æŸ¥æ‰¾é€Ÿåº¦å¿«
+	QHashä»»æ„é¡ºåºå­˜å‚¨æ•°æ®é¡¹ï¼ŒQMapæ€»æ˜¯æŒ‰ç…§keyé”®é¡ºåºå­˜å‚¨æ•°æ®
+	QHashçš„é”®ç±»åž‹Keyå¿…é¡»æä¾›operator==ï¼ˆï¼‰å’Œä¸€ä¸ªå…¨å±€çš„qHashï¼ˆkeyï¼‰å‡½æ•°ï¼Œ
+	è€ŒQMapçš„é”®ç±»åž‹KEYå¿…é¡»æä¾›operator<()å‡½æ•°ã€‚
 	
-´óÐ¡Ð´£º
-	Qt:CaseSensitive ÉèÖÃ´óÐ¡Ð´²»Ãô¸Ð
-ÕýÔò±í´ïÊ½£º
-	±í´ïÊ½+Á¿´Ê+¶ÏÑÔ
-	[]ºÍ[^]£ºÆ¥ÅäÓë²»Æ¥Åä
-	x[m,n]:ÖÁÉÙm¸ö£¬ÖÁ¶àn¸ö¡£
-	+£ºÇ°ÃæµÄ[]ÄÚµÄÆ¥ÅäÖÁÉÙ³öÏÖÒ»´Î£¬¿ÉÒÔ³öÏÖ¶à´Î¡£
-	*£ºÇ°ÃæµÄ[]ÄÚµÄÆ¥Åä³öÏÖ0´Î»ò¶à´Î¡£
-	£¿£ºÇ°ÃæµÄ[]ÄÚµÄÆ¥Åä0´Î»òÒ»´Î¡£
-	^:¿ªÍ·Æ¥Åä
-	$:½áÎ²Æ¥Åä
-	\b£ºµ¥´Ê±ß½ç
-	\B:·Çµ¥´Ê±ß½ç
-¶¨Ê±Æ÷£º
-	ÐÂ½¨¶¨Ê±Æ÷£ºQTimer * name = new QTimer(parent);
-	Á¬½ÓÐÅºÅºÍ²Û£ºconnect(name,SIGNAL(timeout()),this,SLOT(xx()));
-	¿ªÆô¶¨Ê±Æ÷£ºstart(int time)Ã¿¼ä¸ôtimeºÁÃëÖØÆô¶¨Ê±Æ÷¡£setSingleShot(true)Ö»ÓÃÒ»´Î¡£
-
-¡­¡­¡­¡­¡­¡­¡­¡­¡­¡­¡­¡­¡­¡­¡­¡­¡­¡­¡­¡­¡­¡­¡­¡­¡­¡­¡­¡­¡­¡­¡­¡­¡­¡­¡­¡­¡­¡­¡­¡­¡­¡­¡­¡­¡­¡­¡­¡­¡­¡­¡­¡­¡­¡­¡­¡­¡­¡­¡­¡­¡­¡­¡­¡­¡­¡­¡­¡­¡­¡­¡­¡­¡­¡­¡­¡­¡­¡­¡­¡­¡­¡­¡­¡­¡­¡­¡­¡­¡­¡­¡­¡­¡­¡­¡­¡­¡­¡­¡­¡­¡­¡­¡­¡­¡­¡­¡­¡­¡­¡­¡­¡­¡­¡­¡­¡­¡­¡­¡­¡­¡­¡­¡­¡­
-»æÍ¼£º
-	QPinter-->ÒýÇæ-->QPintDevice
-	ÖØÐ´»æÍ¼ÊÂ¼þ£¬Ðéº¯Êý¡£´°¿Ú×´Ì¬¸Ä±ä×Ô¶¯µ÷ÓÃ¡£
+å¤§å°å†™ï¼š
+	Qt:CaseSensitive è®¾ç½®å¤§å°å†™ä¸æ•æ„Ÿ
+æ­£åˆ™è¡¨è¾¾å¼ï¼š
+	è¡¨è¾¾å¼+é‡è¯+æ–­è¨€
+	[]å’Œ[^]ï¼šåŒ¹é…ä¸Žä¸åŒ¹é…
+	x[m,n]:è‡³å°‘mä¸ªï¼Œè‡³å¤šnä¸ªã€‚
+	+ï¼šå‰é¢çš„[]å†…çš„åŒ¹é…è‡³å°‘å‡ºçŽ°ä¸€æ¬¡ï¼Œå¯ä»¥å‡ºçŽ°å¤šæ¬¡ã€‚
+	*ï¼šå‰é¢çš„[]å†…çš„åŒ¹é…å‡ºçŽ°0æ¬¡æˆ–å¤šæ¬¡ã€‚
+	ï¼Ÿï¼šå‰é¢çš„[]å†…çš„åŒ¹é…0æ¬¡æˆ–ä¸€æ¬¡ã€‚
+	^:å¼€å¤´åŒ¹é…
+	$:ç»“å°¾åŒ¹é…
+	\bï¼šå•è¯è¾¹ç•Œ
+	\B:éžå•è¯è¾¹ç•Œ
+å®šæ—¶å™¨ï¼š
+	æ–°å»ºå®šæ—¶å™¨ï¼šQTimer * name = new QTimer(parent);
+	è¿žæŽ¥ä¿¡å·å’Œæ§½ï¼šconnect(name,SIGNAL(timeout()),this,SLOT(xx()));
+	å¼€å¯å®šæ—¶å™¨ï¼šstart(int time)æ¯é—´éš”timeæ¯«ç§’é‡å¯å®šæ—¶å™¨ã€‚setSingleShot(true)åªç”¨ä¸€æ¬¡ã€‚
+button()å’Œbuttons()å‡½æ•°çš„åŒºåˆ«:
+	å‰è€…è¿”å›žäº§ç”Ÿäº‹ä»¶çš„æŒ‰é’®
+	åŽè€…è¿”å›žäº§ç”Ÿäº‹ä»¶çš„æŒ‰é’®çŠ¶æ€
+â€¦â€¦â€¦â€¦â€¦â€¦â€¦â€¦â€¦â€¦â€¦â€¦â€¦â€¦â€¦â€¦â€¦â€¦â€¦â€¦â€¦â€¦â€¦â€¦â€¦â€¦â€¦â€¦â€¦â€¦â€¦â€¦â€¦â€¦â€¦â€¦â€¦â€¦â€¦â€¦â€¦â€¦â€¦â€¦â€¦â€¦â€¦â€¦â€¦â€¦â€¦â€¦â€¦â€¦â€¦â€¦â€¦â€¦â€¦â€¦â€¦â€¦â€¦â€¦â€¦â€¦â€¦â€¦â€¦â€¦â€¦â€¦â€¦â€¦â€¦â€¦â€¦â€¦â€¦â€¦â€¦â€¦â€¦â€¦â€¦â€¦â€¦â€¦â€¦â€¦â€¦â€¦â€¦â€¦â€¦â€¦â€¦â€¦â€¦â€¦â€¦â€¦â€¦â€¦â€¦â€¦â€¦â€¦â€¦â€¦â€¦â€¦â€¦â€¦â€¦â€¦â€¦â€¦â€¦â€¦â€¦â€¦â€¦â€¦
+ç»˜å›¾ï¼š
+	QPinter-->å¼•æ“Ž-->QPintDevice
+	é‡å†™ç»˜å›¾äº‹ä»¶ï¼Œè™šå‡½æ•°ã€‚çª—å£çŠ¶æ€æ”¹å˜è‡ªåŠ¨è°ƒç”¨ã€‚
 	
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-F1        ²é¿´°ïÖú
-F2        Ìø×ªµ½º¯Êý¶¨Òå£¨ºÍCtrl+Êó±ê×ó¼üÒ»ÑùµÄÐ§¹û£©
-Shift+F2    ÉùÃ÷ºÍ¶¨ÒåÖ®¼äÇÐ»»
-F4        Í·ÎÄ¼þºÍÔ´ÎÄ¼þÖ®¼äÇÐ»»
-Ctrl+1         »¶Ó­Ä£Ê½
-Ctrl+2        ±à¼­Ä£Ê½
-Ctrl+3        µ÷ÊÔÄ£Ê½
-Ctrl+4        ÏîÄ¿ÉèÖÃÄ£Ê½
-Ctrl+5        °ïÖúÄ£Ê½    
-Ctrl+6        Êä³öÄ£Ê½
-Alt+0        ÏÔÊ¾»òÕßÒþ²Ø²à±ßÌõ£¬±à¼­Ä£Ê½ÏÂÆð×÷ÓÃ£¨ÓÐÊ±Ð´µÄº¯ÊýÌ«³¤£¬ÆÁÄ»²»¹»´ó£¬¾ÍÓÃÕâ¸ö£©
-Ctrl+Space    ×Ô¶¯²¹È«£¨Ã²ËÆ»áºÍÊäÈë·¨µÄÇÐ»»³åÍ»£©
-ESc        ÇÐ»»µ½±à¼­Ä£Ê½
-Alt+1        ´´½¨Ï¸½Ú´°¿Ú
-Alt+2        ËÑË÷½á¹û´°¿Ú
-Alt+3        ³ÌÐòÊä³ö´°¿Ú
-Alt+4        ±àÒëÊä³ö´°¿Ú
-Ctrl+B        ±àÒë¹¤³Ì
-Ctrl+R        ÔËÐÐ¹¤³Ì
-Ctrl+I        ×Ô¶¯¶ÔÆë
-Ctrl+/        ×¢ÊÍÐÐ£¬È¡Ïû×¢ÊÍÐÐ
-Ctrl+Shift+<         ÕÛµþ´úÂë¿é
-Ctrl+Shift+>         Õ¹¿ª´úÂë¿é
-Ctrl+[        Ìøµ½´úÂë¿éµÄÍ·²¿
-Ctrl+]        Ìøµ½´úÂë¿éµÄÎ²²¿
-Ctrl+L        Ìøµ½Ä³Ò»ÐÐ
-Ctrl+F       ²éÕÒÌæ»»µ±Ç°Ñ¡ÖÐµÄÄÚÈÝ£¬°´ÏÂCtrl+F£¬»áÁÐ³öËùÓÐºÍÄãÑ¡µÄÄÚÈÝÒ»ÑùµÄÓï¾ä
-Ctrl+Shift+F  ²éÕÒÄÚÈÝ
-F5            ¿ªÊ¼µ÷ÊÔ
-Shift+F5   Í£Ö¹µ÷ÊÔ
-F9            ÉèÖÃºÍÈ¡Ïû¶Ïµã
-F10          µ¥²½Ç°½ø
-F11          µ¥²½½øÈëº¯Êý
+F1        æŸ¥çœ‹å¸®åŠ©
+F2        è·³è½¬åˆ°å‡½æ•°å®šä¹‰ï¼ˆå’ŒCtrl+é¼ æ ‡å·¦é”®ä¸€æ ·çš„æ•ˆæžœï¼‰
+Shift+F2    å£°æ˜Žå’Œå®šä¹‰ä¹‹é—´åˆ‡æ¢
+F4        å¤´æ–‡ä»¶å’Œæºæ–‡ä»¶ä¹‹é—´åˆ‡æ¢
+Ctrl+1         æ¬¢è¿Žæ¨¡å¼
+Ctrl+2        ç¼–è¾‘æ¨¡å¼
+Ctrl+3        è°ƒè¯•æ¨¡å¼
+Ctrl+4        é¡¹ç›®è®¾ç½®æ¨¡å¼
+Ctrl+5        å¸®åŠ©æ¨¡å¼    
+Ctrl+6        è¾“å‡ºæ¨¡å¼
+Alt+0        æ˜¾ç¤ºæˆ–è€…éšè—ä¾§è¾¹æ¡ï¼Œç¼–è¾‘æ¨¡å¼ä¸‹èµ·ä½œç”¨ï¼ˆæœ‰æ—¶å†™çš„å‡½æ•°å¤ªé•¿ï¼Œå±å¹•ä¸å¤Ÿå¤§ï¼Œå°±ç”¨è¿™ä¸ªï¼‰
+Ctrl+Space    è‡ªåŠ¨è¡¥å…¨ï¼ˆè²Œä¼¼ä¼šå’Œè¾“å…¥æ³•çš„åˆ‡æ¢å†²çªï¼‰
+ESc        åˆ‡æ¢åˆ°ç¼–è¾‘æ¨¡å¼
+Alt+1        åˆ›å»ºç»†èŠ‚çª—å£
+Alt+2        æœç´¢ç»“æžœçª—å£
+Alt+3        ç¨‹åºè¾“å‡ºçª—å£
+Alt+4        ç¼–è¯‘è¾“å‡ºçª—å£
+Ctrl+B        ç¼–è¯‘å·¥ç¨‹
+Ctrl+R        è¿è¡Œå·¥ç¨‹
+Ctrl+I        è‡ªåŠ¨å¯¹é½
+Ctrl+/        æ³¨é‡Šè¡Œï¼Œå–æ¶ˆæ³¨é‡Šè¡Œ
+Ctrl+Shift+<         æŠ˜å ä»£ç å—
+Ctrl+Shift+>         å±•å¼€ä»£ç å—
+Ctrl+[        è·³åˆ°ä»£ç å—çš„å¤´éƒ¨
+Ctrl+]        è·³åˆ°ä»£ç å—çš„å°¾éƒ¨
+Ctrl+L        è·³åˆ°æŸä¸€è¡Œ
+Ctrl+F       æŸ¥æ‰¾æ›¿æ¢å½“å‰é€‰ä¸­çš„å†…å®¹ï¼ŒæŒ‰ä¸‹Ctrl+Fï¼Œä¼šåˆ—å‡ºæ‰€æœ‰å’Œä½ é€‰çš„å†…å®¹ä¸€æ ·çš„è¯­å¥
+Ctrl+Shift+F  æŸ¥æ‰¾å†…å®¹
+F5            å¼€å§‹è°ƒè¯•
+Shift+F5   åœæ­¢è°ƒè¯•
+F9            è®¾ç½®å’Œå–æ¶ˆæ–­ç‚¹
+F10          å•æ­¥å‰è¿›
+F11          å•æ­¥è¿›å…¥å‡½æ•°
 
-Shift + F11  µ¥²½Ìø³öº¯Êý
+Shift + F11  å•æ­¥è·³å‡ºå‡½æ•°
 +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++==
-QTÁ¬½ÓMySQL:
-	³öÏÖ´íÎó£ºQSqlDatabase: QMYSQL driver not loaded QSqlDatabase: available drivers: QSQLITE QMYSQL QMYSQL3 QODBC7
-	½â¾ö°ì·¨£º
-		½«mysql/lib/libmysql.dll¸´ÖÆµ½c£º/windowsÖÐ;
+QTè¿žæŽ¥MySQL:
+	å‡ºçŽ°é”™è¯¯ï¼šQSqlDatabase: QMYSQL driver not loaded QSqlDatabase: available drivers: QSQLITE QMYSQL QMYSQL3 QODBC7
+	è§£å†³åŠžæ³•ï¼š
+		å°†mysql/lib/libmysql.dllå¤åˆ¶åˆ°cï¼š/windowsä¸­;
