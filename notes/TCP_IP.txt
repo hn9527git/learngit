@@ -216,13 +216,15 @@ TCP套接字从创建到消失过程：
 	结构简单
 	性能比TCP高
 	编程实现简单
-C/S架构：
+数据传输过程：
 	UDP的服务器端和客户端不需要连接，没有listen函数和accept函数过程
 	只有创建套接字的过程和数据交换过程。
 	TCP中，套接字是一对一的，若要向是个客户端提供服务，除了守门的服务端套接字，还需要
 		是个服务端套接字。
 	UDP中，不管是服务器端还是客户端都只需要一个套接字。
 	UDP套接字每次传输数据都需要添加目标地址信息。
+	udp_server:socket-->bind-->循环(接收-->发送)
+	udp_client:socket-->循环（输入-->发送-->接收-->输出）
 相关函数：
 	发送数据函数：
 	ssize_t sento(int sock,void *buff,size_t nbytes,int flags,
@@ -233,6 +235,10 @@ C/S架构：
 		-- flags :可选项参数，若没有则传递0
 		-- to :存有目标地址信息的sockaddr结构体变量的地址值
 		-- addrlen :传递给参数to的地址值结构体变量长度
+		调用过程：
+			1.向UDP套接字注册目标IP和端口号
+			2.传输数据
+			3.删除UDP套接字中注册的目标地址信息
 	接受数据函数：
 	ssize_t recvfrom(int sock,void *buff,size_t nbytes,int flags,
 						struct sockaddr *from,socklen_t *addrlen);
@@ -242,12 +248,56 @@ C/S架构：
 		-- flags :可选项参数，若没有则传递0
 		-- from :存有发送端地址信息的sockaddr结构体变量的地址值
 		-- addrlen :保存参数from的结构体变量长度的变量地址值
+UDP客户端套接字的地址分配:
+	调用sendto函数时自动分配IP和端口号。
+	TCP套接字中需要注册待传输数据的目标IP和端口号，而UDP中则无需注册。
+UDP套接字：
+	已连接UDP套接字：注册了目标地址信息
+	未连接UDP套接字：未注册目标地址信息
+	创建已连接UDP套接字:
+		调用connect函数为套接字注册目标地址信息
+------------------------套接字断开------------------------------------------------------------
+直接断开：调用close();
+	断开端无法接受别的主机传输的数据，实际是完全无法调用接收数据相关的函数。
+套接字和流：
+	一个连接有两个流：一个输入流，一个输出流 才能完成数据交换
+	可以优雅的断开其中一个流。
+半关闭函数：
+	int shutdown(int sock,int howto);
+		-- sock :需要断开的套接字文件描述符
+		-- howto (SHUT_RD | SHUT_WR | SHUT_RDWR)：传递断开方式信息
+	为何需要半关闭函数:
+		主机A-->给我传某文件-->主机B
+		   <-----文件传输中------
+		   -------谢谢----------->
+	其中谢谢是多余的，只是用来模拟客户端断开连接前还是数据需要传输的情况
+	约定一个传输文件结束符EOF
+	当断开输出流时向对方主机传输EOF，但如果调用close函数则对方接受不到EOF信号，
+	此时需要调用shutdown函数，关闭输出流，这样服务端既可以发送EOF，同时又保留了输入流。
 
-
-
-
-
-
+------------------------域名与网络地址------------------------------------------------------------
+DNS:
+	是对IP地址和域名进行相互转换的系统，核心是DNS服务器
+域名：
+	用容易记忆和表述的域名来替代非常难记的IP地址。
+域名获取IP函数：
+	struct hostent * gethostbyname(const char * hostname);
+		-- hostname：域名
+	struct hostent
+	{
+		char * h_name; 		//官方域名
+		char ** h_aliases  	//其他域名
+		int h_addrtype; 	//地址类型
+		int h_length;		//地址长度
+		char ** h_addr_list;//IP，可能有多个用来负载均衡
+	}
+IP获取域名函数：
+	struct hostent * gethostbyaddr(const char * addr,socklen_t len,int family);
+		-- addr:含有IP地址信息的in_addr机构体指针，为了将来兼容IPv6，
+			不是void*(因为当时void指针标准化还未定义)
+		-- len:向第一个参数传递的地址信息字节数，IPv4时为4，IPv6时为16
+		-- family:传递地址族信息，IPv4时为AF_INET，IPv6时为AF_INET6
+	
 
 
 
