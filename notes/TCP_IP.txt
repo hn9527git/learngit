@@ -297,9 +297,66 @@ IP获取域名函数：
 			不是void*(因为当时void指针标准化还未定义)
 		-- len:向第一个参数传递的地址信息字节数，IPv4时为4，IPv6时为16
 		-- family:传递地址族信息，IPv4时为AF_INET，IPv6时为AF_INET6
+------------------------套接字可选项与IO缓冲大小------------------------------------------------------------
+读取套接字可选项：
+	int getsockopt(int sock,int level,int optname,void *optval,socklen_t *optlen);
+		--sock :用于查看选项套接字文件描述符
+		--level :要查看的可选项的协议层
+		--optname :要查看的可选项名
+		--optlen :向第四个参数optval传递的缓冲大小，该变量中保存通过第四个参数返回的
+				可选项调用的函数。
+	int setsockopt(int sock,int level,int optname,const void *optval,socklen_t optlen);
+		--sock :用于更改可选项的套接字文件描述符
+		--level ：要更改的可选项协议层
+		--optname ：要更改的可选项名
+		--optval ：保存要更改的选项信息的缓冲地址值
+		--optlen :向第四个参数optval传递的可选项信息的字节数
+(,SOL_SOCKET,XXXX,)
+	XXXX为SO_TYPE:
+		获得套接字类型
+	为SO_SNDBUF:
+		获得套接字发送缓冲大小
+	为SO_RCVBUF:
+		获得套接字接收缓冲大小
+更改缓冲大小：
+	int snd_buf=1024*4,rcv_buf=1024*8;
+	setsockopt(sock,SOL_SOCKET,SO_RCVBUF,(void *)&rcv_buf,sizeof(rcv_buf));
+	setsockopt(sock,SOL_SOCKET,SO_SNDBUF,(void *)&snd_buf,sizeof(snd_buf));
+Time-wait:
+	先传输FIN消息的主机应经过此过程。
+	客户端的此状态无需考虑，因为客户端套接字的端口号是任意指定的。
+	此状态下无法分配套接字端口号。
+	修改使其可以：
+		int option;
+		optlen=sizeof(option);
+		option=TRUE;
+		setsockopt(serv_sock,SOL_SOCKET,SO_REUSEADDR,(void *)&option,optlen);
+Nagle算法：
+	只有收到前一数据的ACK消息，Nagle算法才发送下一条数据
+	一般情况下，不使用Nagle算法会对网络流量产生负面影响，但传输大文件时，
+		不使用此算法较快。
+	禁用：
+		int opt_val=1;
+		setsockopt(sock,IPPROTO_TCP,TCP_NODELAY,void *)&opt_val,sizeof(opt_val));
+	查看状态：
+		int opt_val;
+		socklen_t opt_len;
+		opt_len=sizeof(opt_val);
+		getsockopt(sock,IPPROTO_TCP,TCP_NODELAY,(void *)&option,&opt_len);
+	0:表示正在使用Nagle算法
+	1:表示禁用Nagle算法
 	
-
-
-
-
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
 	
