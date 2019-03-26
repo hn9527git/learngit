@@ -376,9 +376,45 @@ Nagle算法：
 			-- statloc:接受信息
 			-- options:传递头文件中的声明的常量WNOHANG，即使没有终止的子进程也不会进入阻塞，返0退出
 			-- 不阻塞
-		
-		
-		
+信号处理：
+	父进程往往与子进程一样繁忙，因此不能之调用waitpid函数以等待子进程终止，所以向操作系统求助
+		由操作系统告诉父进程子进程的终止，此时父进程暂时放下工作去处理子进程终止相关事宜。
+	信号注册：
+		进程：向操作系统申请，若我的子进程结束就调用XXXX函数(需要提前写好)
+		操作系统：收到申请，
+	void (*signal(int signo,void (*func)(int)))(int);//UNIX操作系统中可能存在区别
+		-- 在产生信号时调用，返回之前注册的函数指针
+		-- signal ：函数名
+		-- int signo,void (*func)(int) ：参数
+		-- 返回void型参数为int的函数指针
+	调用时，第一个参数为信号，第二个参数为信号发生时将要调用的函数地址值
+		例如：signal(SIGINT,handler);
+	alarm函数：
+	unsigned int alarm(unsigned int seconds);
+		-- seconds秒后发出SIGALRM信号
+	发生信号时将唤醒由于调用sleep函数而进入阻塞状态的进程（P169），信号处理函数执行后返回
+		跳过当前阻塞状态。
+	int sigaction(int signo,const struct sigaction * act,struct sigaction * oldact);
+		-- //UNIX操作系统中完全相同
+		-- //返回0，失败返回-1
+		-- signo：信号
+		-- oldact：通过此参数获取之前注册的信号处理函数指针，若不需要传0
+		-- struct sigaction
+			{
+				void (*sa_handler)(int);//信号处理函数的地址值
+				sigset_t sa_mask;//sigemptyset(act.sa_mask)将所有位置0
+				int sa_flags;//0
+			}
+进程间通信：
+	两个不同进程间可以交换数据，操作系统通过提供两个进程可以同时访问的内存空间来实现。
+	管道：
+		int pipe(int filedes[2]);//返回0，失败返回-1
+			-- filedes[0] 通过管道接收数据时的文件描述符，即管道出口
+			-- filedes[1] 通过管道传输数据时的文件描述符，即管道入口
+	双向传输数据问题：
+		数据进入管道后成为无主数据，若写数据后直接读会取出刚写进去的无主数据。可以sleep
+	
+	
 		
 		
 		
