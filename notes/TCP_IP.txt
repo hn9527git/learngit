@@ -413,10 +413,55 @@ Nagle算法：
 			-- filedes[1] 通过管道传输数据时的文件描述符，即管道入口
 	双向传输数据问题：
 		数据进入管道后成为无主数据，若写数据后直接读会取出刚写进去的无主数据。可以sleep
-	
-	
-		
-		
+-------------------------I/O复用-----------------------------------------------------
+	在不创建进程的同时向多个客户端提供服务	
+select函数：
+	调用方法：设置文件描述符->指定监视范围->设置超时->调用本函数->查看调用结果
+	fd_set数组变量区分套接字,设置为1表示该文件描述符是监视对象
+	fd_set操作：
+		FD_ZERO(fd_set * fdset)：将fd_set变量的所有位初始化为0
+		FD_SET(int fd,fd_set * fdset):在参数fdset指向的变量中注册文件描述符fd的信息
+		FD_CLR(int fd,fd_set * fdset):                       清除文件描述符fd的信息
+		FD_ISSET(int fd,fd_set * fdset):若该文件描述符是监视对象，返回真
+	int select(int maxfd,fd_set * readset,fd_set * writeset,fd_set * exceptset,
+				const struct timeval * timeout);
+		-- //返回大于0的值，失败返回-1
+		-- maxfd:监视对象文件描述符数量
+		-- readset:将所有关注“是否存在待读数据”的文件描述符注册到fd_set，并传递地址值
+		-- writeset:---------“是否可传输无阻塞数据”----------------------------------
+		-- exceptset:--------“是否发生异常”------------------------------------------
+		-- timeout:为防止陷入无限阻塞的状态，传递超时（time-out）信息
+		-- 返回值：发生错误返回-1，超时返回0，因发生关注的时间返回时，返回发生事件的文
+			件描述符数
+	struct timeval
+	{
+		long tv_sec;	//秒数
+		long tv_usec;	//毫秒
+	}
+	select函数调用完成后，fd_set发生变化，原来为1的位均变成0，但发生变化的文件描述符
+		对应的位除外，即可认为仍为1的位置上的文件描述符发生了变化
+------------------------I/O函数------------------------------------------------------
+	ssize_t send(int sockfd,const void * buf,size_t nbytes,int flags);
+		-- //返回发送的字节数，失败时返回-1
+		-- sockfd:表示与数据传输对象的连接的套接字文件描述符
+		-- buf:保存待传输数据的缓冲地址值
+		-- nbytes:待传输的字节数
+		-- flags:传输数据时指定的可选项信息。
+	ssize_t recv(int sockfd,void * buf,size_t nbytes,int flags);
+		-- //返回接收的字节数，收到EOF返回0，失败时返回-1
+		-- sockfd:表示与数据传输对象的连接的套接字文件描述符
+		-- buf:保存接收数据的缓冲地址值
+		-- nbytes:可接收的最大字节数
+		-- flags:接收数据时指定的可选项信息
+	这两个函数的最后一个参数时收发数据时的可选项
+		可选项				含义							   send		recv
+		MSG_OOB			用于传输带外数据						Y		  Y
+		MSG_PEEK		验证输入缓冲中是否存在接收数据					  Y
+		MSG_DONTROUTE	在本地网络中寻找目的地					Y
+		MSG_DONTWAIT 	调用IO函数不阻塞，用于使用非阻塞IO		Y		  Y
+		MSG_WAITALL		防止函数返回，直到收到全部请求的字节数			  Y
+	MSG_OOB:
+		发送紧急消息，应当优先处理
 		
 		
 		
