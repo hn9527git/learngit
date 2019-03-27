@@ -462,7 +462,52 @@ select函数：
 		MSG_WAITALL		防止函数返回，直到收到全部请求的字节数			  Y
 	MSG_OOB:
 		发送紧急消息，应当优先处理
-		
+	
+对数据进行整合传输及发送的函数：
+	ssize_t writev(int filedes,const struct iovec * iov,int iovcnt);
+		-- //成功返回发送的字节数，失败时返回-1
+		-- filedes ：表示数据传输对象的套接字文件描述符
+		-- iov ：iovec结构体数组的地址值，包含待发送数据的位置和大小信息
+		-- iovcnt :向第二个参数传递的数组长度
+	struct iovec
+	{
+		void * iov_base;//缓冲地址
+		size_t iov_len;//缓冲大小
+	}
+-----------------多播和广播----------------------------------------------------------
+多播：
+	基于UDP完成，同时向多个主机传递数据
+	特点：
+		多播服务器端针对特定多播组，只发送一次数据
+		即使只发送一次数据，但该组的所有客户端都会收到数据
+		多播组数可在IP地址范围内任意增加
+		加入特定组即可接收发往该多播组的数据
+	多播组是D类IP地址(224.0.0.0~239.255.255.255)
+
+----------------套接字和标准I/O------------------------------------------------------
+         标准I/O                     文件I/O（系统）
+打开  fopen,freopen,fdopen              open
+关闭  fclose                            close
+读    getc,fgetc,getchar,fgetchar       read
+	  fgets,gets,fread                  
+写	  putc,fputc,putchar,fputs          write
+	  puts,fwrite
+标准I/O函数：
+	优点:
+		具有良好的移植性
+		可以利用缓冲提高性能
+	缺点：
+		不容易进行双向通信
+		有时可能频繁调用fflush函数
+		需要以FILE结构体指针的形式返回文件描述符
+将创建的文件描述符转换为标准I/O函数中使用的FILE结构体指针
+	FILE * fdopen(int fildes,const char * mode);
+		-- //返回转换的FILE指针，失败时返回NULL
+		-- filds:需要转换的文件描述符
+		-- mode:将要创建的FILE结构体指针的模式信息
+将标准I/O函数中使用的FILE结构体指针转换为文件描述符
+	int fileno(FILE * stream);
+		-- //返回转换后的文件描述符，失败时返回-1
 		
 		
 		
