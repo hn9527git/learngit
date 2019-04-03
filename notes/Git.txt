@@ -47,6 +47,18 @@ Git远程仓库：
 	把本地master分支的最新修改推送至远程仓库
 克隆远程到本地库：
 	git clone git@github.com:hn9527/learngit.git
+git clone和git pull：
+	git clone是将整个工程复制下来所以，不需要本地是仓库（没有.git文件夹）
+git fetch更新本地仓库的两种用法：
+	# 方法一
+	$ git fetch origin master                #从远程的origin仓库的master分支下载代码到本地的origin maste
+	$ git log -p master.. origin/master      #比较本地的仓库和远程参考的区别
+	$ git merge origin/master                #把远程下载下来的代码合并到本地仓库，远程的和本地的合并
+	# 方法二
+	$ git fetch origin master:temp           #从远程的origin仓库的master分支下载到本地并新建一个分支temp
+	$ git diff temp                          #比较master分支和temp分支的不同
+	$ git merge temp                         #合并temp分支到master分支
+	$ git branch -d temp                     #删除temp
 分支：你创建了一个属于你自己的分支，别人看不到，还继续在原来的分支上正常工作
 		而你在自己的分支上干活，想提交就提交，直到开发完毕后，再一次性合并到原来的分支上
 		这样，既安全，又不影响别人工作。
