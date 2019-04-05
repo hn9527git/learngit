@@ -1,3 +1,4 @@
+-------------------------------------基础、结构、函数--------------------------------
 计算机网络中的硬件	
 	路由器：根据IP转发信息
 	集线器: 将局域网中的多台计算机连接到一起，广播型连接
@@ -61,7 +62,7 @@ C/S准备工作异同:
 	服务端的sockaddr_in结构体初始化为服务器端IP和套接字的端口号，然后bind；
 	客户端的sockaddr_in结构体初始化为要与之连接的服务器端套接字的IP和端口号，然后connect；
 INADDR_ANY:
-	自动获取运行服务端的计算机IP地址。一般用于服务端。
+	自动获取运行服务端的计算机IP地址。一般用于服务端。！
 方式
 	SOCK_STREAM:使用TCP协议，可靠传输
 	SOCK_DGRAM:使用UDP协议，不可靠协议
@@ -75,8 +76,8 @@ INADDR_ANY:
 
 	socket(AF_INET,SOCK_STREAM,0);
 	类型--seraddr_in.sin_family=AF_INET;
-	端口--seraddr_in.sin_addr.s_addr=inet_addr("192.168.57.129")--点分ip转整数
-	地址--seraddr_in.sin_port=htons(8888);--本地转换网络字节序（大小端）
+	地址--seraddr_in.sin_addr.s_addr=inet_addr("192.168.57.129")--点分ip转整数
+	端口--seraddr_in.sin_port=htons(8888);--本地转换网络字节序（大小端）
 	未用--bzero(seraddr.sin_zero,8);
 	bind(sockfd,(struct sockaddr *)&seraddr,sizeof(seraddr));
 	listen(sockfd,20);--定义连接队列数20
@@ -124,7 +125,8 @@ INADDR_ANY:
 	--0;参数二的默认协议
 	socket(AF_INET,SOCK_STREAM,0);
 	类型--seraddr_in.sin_family=AF_INET;
-	端口--seraddr_in.sin_addr.s_addr=inet_addr("192.168.57.129")--点分ip转整数
+	端口--seraddr_in.sin_addr.s_addr=inet
+	_addr("192.168.57.129")--点分ip转整数
 	地址--seraddr_in.sin_port=htons(8888);--本地转换网络字节序（大小端）
 	未用--bzero(seraddr.sin_zero,8);
 	connect(sockfd,(struct sockaddr *)&seraddr,sizeof(seraddr));
@@ -221,6 +223,8 @@ TCP套接字从创建到消失过程：
 	性能比TCP高
 	编程实现简单
 数据传输过程：
+	服务器：socket()-->bind()--> 【recvfrom()-->sendto()】 -->close()
+	客户端：socket()--> 【sendto()-->recvfrom() 】 -->close()
 	UDP的服务器端和客户端不需要连接，没有listen函数和accept函数过程
 	只有创建套接字的过程和数据交换过程。
 	TCP中，套接字是一对一的，若要向是个客户端提供服务，除了守门的服务端套接字，还需要
@@ -463,7 +467,8 @@ select函数：
 		MSG_PEEK		验证输入缓冲中是否存在接收数据					  Y
 		MSG_DONTROUTE	在本地网络中寻找目的地					Y
 		MSG_DONTWAIT 	调用IO函数不阻塞，用于使用非阻塞IO		Y		  Y
-		MSG_WAITALL		防止函数返回，直到收到全部请求的字节数			  Y
+		MSG_WAITALL		防止函数返回，直到收
+		到全部请求的字节数			  Y
 	MSG_OOB:
 		发送紧急消息，应当优先处理
 	
