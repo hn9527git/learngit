@@ -1,0 +1,322 @@
+---------------------------进程-----------------------------------------------------
+动态性
+并发性
+独立性
+异步性
+进程控制块：task_struct 数据结构来表示
+Linux支持两种进程：实时进程和普通进程
+fork()函数	vfork()函数
+	前者要拷贝父进程的数据段，后者不完全拷贝，在子进程没有调用exec或exit之前，与父进程共享数据段
+	后者自动调用exec
+	后者限定子进程先运行，父进程挂起直到子进程调用了exec或exit后，父子进程才没有执行次序的限制
+exec()系列函数
+int execl(const char *path,const char * arg,...);
+	例：execl("/bin/","ls","-l","/etc/passwd",NULL);
+	要求全路径，最后一个参数必须用空指针NULL结束
+int execlp(const char *file,const char *arg,...);
+	例:execlp("pwd","",NULL);
+	从PATH环境变量所指的目录中查找参数file的文件名，找到后执行，后边为参数，NULL结尾
+system函数也可以创建进程
+	int system(const char * cmdstring)；
+	该函数执行过程：1.fork()2.子进程中调用exec执行cmdstring3.父进程等待子进程返回结束。
+守护进程：
+	独立启动守护进程：一直占据内存，响应快
+	超级守护进程：由统一的守护进程来管理，需要唤醒，多了一层管理机制
+进程组：
+	一或多个进程的集合，进程组ID和组长进程ID一样，且组长进程退出，进程组ID不变存在
+会话周期：
+	一或多个进程组的集合，开始于用户登录，终止于用户退出，期间该用户所运行的所有进程都属于这个会话周期
+setsid()函数：
+	创建新会话，并担任该会话组组长
+	作用：1。让进程摆脱原进程的控制 2.摆脱原进程组的控制 3.摆脱原控制终端的控制
+编写守护进程：
+	1.创建子进程，父进程退出。子进程成为孤儿进程，由1号进程收养
+	2.在子进程中创建新对话。setsid()函数
+	3.改变当前目录（一般改为根目录）
+	4.重设文件权限掩码
+	5.关闭文件描述符（从父进程继承的，且0，1，2也没有了存在价值，关闭）
+	6.守护进程退出处理（kill）编写kill信号的signal信号处理函数，使其能正常退出
+进程退出：
+	8种方法，5正常，3异常
+	5正常：
+	main函数中的return
+	_exit():停止并清除内存空间以及内核中的数据结构
+	exit():检查文件打开情况，缓冲写入文件，并停止
+	最后一个线程返回
+	最后一个线程调用了pthread_exit函数
+	3异常：
+	调用abort函数
+	接到一个信号并且终止
+	最后一个线程对取消请求作了响应
+	
+	atexit(function_name)：登记终止处理函数
+销毁进程：
+	子进程终止时将产生SIGCHLD信号，可以利用各种信号函数完成消灭僵尸进程
+		用sigaction函数注册该信号，在注册函数中调用waitpid函数即可
+	pid_t wait(int * status);//阻塞等待子进程
+		WIFEXITED(status):子进程正常结束返回真
+		WIFSIGNALED(status):子进程异常结束返回真
+		WEXITSTATUS(status):正常返回时调用，返回状态字的底八位
+		WTERMSIG(status):异常返回时调用，返回引起终止的信号代号
+	waitpid()：
+		pid_t waitpid(pid_t pid,int * statloc,int options);//返回终止子进程ID或0，失败返回-1
+			-- pid:等待终止的目标子进程的ID，若传递-1，则等同于wait函数（等待任意子进程）
+			-- statloc:接受信息
+			-- options:传递头文件中的声明的常量WNOHANG，即使没有终止的子进程也不会进入阻塞，返0退出
+			-- 不阻塞
+-------------------------信号---------------------------------------------------------
+进程何时检查是否收到信号：
+	即将从内核态返回到用户态或者要进入或离开一个适当的低调度优先级睡眠状态时
+内核何时处理进程收到的信号；
+	从内核态返回用户态时
+64个信号：
+	前32个Linux内核支持，不可靠
+	后32个后来扩充的，可靠
+	区别：不可靠信号不支持排队
+注册信号函数：
+	signal();
+		void (*signal(int signo,void(*handler)(int)))(int);
+		sigkill和sigstop不能设置信号处理函数
+	sigaction函数
+		int sigaction(int signo,const struct sigaction * act,struct sigaction * oldact);
+		-- //UNIX操作系统中完全相同
+		-- //返回0，失败返回-1
+		-- signo：信号
+		-- oldact：通过此参数获取之前注册的信号处理函数指针，若不需要传0
+		-- struct sigaction
+			{
+				void (*sa_handler)(int);//信号处理函数的地址值
+				void (*sa_sigaction)(int,siginfo_t*,void *);
+				sigset_t sa_mask;//sigemptyset(act.sa_mask)将所有位置0////阻塞此信号好像是
+				int sa_flags;//0
+			}
+发送信号：
+	kill函数:
+		int kill(pid_t pid,int sig);
+		pid>0	发送sig给pid进程
+		pid=0	发送sig给与目前进程相同进程组的所有进程
+		pid<0&&pid！=-1		发送sig给进程组id为pid绝对值的进程组中的所有进程
+		pid=-1		除了进程自身，向所有进程id大于1的进程发送信号
+		sig=0时，不发送任何信号，但照常检查错误，可用于检查目标进程是否存在
+	raise函数：给自身发送信号
+		int raise(int sig);
+	sigqueue函数：只能给一个进程发送信号，可以传递附加信息
+		int sigqueue(pid_t pid,int sig,const union sigval value);
+		-- 返回0，失败返回-1
+		-- typedef union sigval
+		{
+			int sival_int;
+			void * sival_ptr;//只想要传递的信号参数
+		}sigval_t;
+	alarm函数：定时发送信号函数
+		unsigned int alarm(unsigned int seconds);
+		调用后所有以前的alarm调用都将无效，如果调用alarm之前进程中设置了闹钟时间，
+			则返回上一个闹钟时间剩余的时间，否则返回零。
+信号集
+	typedef struct
+	{
+		unsigned long sig[_NSIG_WORDS];
+	}sigset_t
+	int sigemptyset(sigset_t * set);	置空,返回0，失败返回-1
+	int sigfillset(sigset_t * set);		置满（包含所有信号），返回0，失败返回-1
+	int sigaddset(sigset_t * set,int signum);		添加，返回0，失败返回-1
+	int sigdelset(sigset_t * set,int signum);		删除，返回0，失败返回-1
+	int sigismember(const sigset_t * set,int signum);检查在否，在返回1，不在返回0，失败返回-1
+信号的阻塞和挂起：
+	阻塞：
+		int sigprocmask(int how,const sigset_t * set,sigset_t * oldset);
+		--how:SIG_BLOCK表示加入信号屏蔽，SIG_UNBLOCK表示删除信号屏蔽，SIG_SETMASK表示重设信号屏蔽集
+		--成功返0，失败返回-1，并errno设置为EINVAL
+	挂起：
+		int sigsuspend(const sigset_t * set);
+		int sigpending(sigset_t * set);
+		--判断信号是否悬而未决即阻塞未处理
+		--将这种信号存储在set中
+精准定时：
+	setitimer函数
+可重入函数：
+	可以在运行期间再次被调用的函数：
+		在任务执行期间捕捉到信号并对其进行处理时，进程正在执行的指令序列就被信号处理程序临时中断
+		如果从信号处理函数返回，则继续执行进程断点处的正常指令序列，重新恢复到断点重新执行的过程中
+		函数所依赖的环境没有发生变化，则称这个函数是可重入的。
+	通常的不可重入的条件：
+		使用了静态数据结构
+		调用了malloc函数和free函数
+		调用了标准I/O函数
+		进行了浮点运算
+SIGCHLD信号：
+	子进程结束时父进程会收到这个信号（父进程或者忽略该信号，或者捕捉它，或者等待它的子进程结束，或者
+	父进程先终止，由init进程接管该子进程）
+------------------------------进程同步机制-----------------------------------------------------
+匿名管道:	只存在内存中(结束则消失)，亲缘进程的通信，即fork出来的各个进程
+	pipe(int fd[2])函数
+特殊情况;
+		写端关闭，读端读取管道中的剩余数据后再次读会返回0，就像读到文件末尾一样
+		写端没关但不写数据，读端读取剩余数据后再次读会阻塞等待
+		写端关闭后再写会收到SIGPIPE信号，默认自动终止，也可以自定义处理函数
+		写端没关，读端未读，则管道满了(4kb)，则写阻塞等待
+命名管道：	文件形式存在于文件系统中(类似一个设备，不删除即存在)，所有能访问该文件的进程都可使用
+		先进先出，不支持文件定位操作
+	在shell中使用mkfifo [option] name 即可创建一个命名管道
+	1.没写就读会产生SIGPIPE信号
+	2.所有写进程关闭，则读操作认为已经到达文件尾
+	3.写入不超过PIPE_BUF，不会产生交错
+	4.阻塞，读打开阻塞直到写进程打开，写进程打开阻塞直到读进程打开，可设置O_NONBLOCK标志来实现
+	int mkfifo(const char * pathname,mode_t mode);
+		-- pathname:路径名
+		-- mode:例如0755；
+IPC机制：system V ipc 继承自unix 包括 消息队列 信号量 共享内存
+	标识符：不同结构可相同
+	关键字：外部名称，唯一
+	ftok(pathname,int proj_id)函数：将一个路径和项目转换为关键字
+	需要主动删除，不能公开访问，没有文件描述符
+	SHELL查看：ipcs [-m:指定共享内存|-q:指定消息队列|-s:指定信号量|-a:所有]+
+		[-t:按时间|-p:按标识符|-c:按创建者|-l:按权限|-u:按概要]
+消息队列：客户端发送的请求服务器不能及时处理，将请求放在消息队列中
+			先返回客户端发送请求成功，再在消息队列中取请求执行
+	存在内核中的一种链表式结构组织的数据
+	#include <sys/msg.h>
+	int msgget(ket_y key,int msgflg);//创建或打开消息队列
+		-- key:标识一个消息队列，为IPC_PRIVATE时，不管msgflag是啥，都创建一个新的消息队列
+		-- msgflg:IPC_CREATE|IPC_EXCL//存在则打开，不存在则创建
+	int msgctl(int msqid,int cmd,struct msqid_ds * buf);//获取和设置消息队列的属性
+		-- msqid:消息队列标识符
+		-- cmd:要对消息队列进行的操作
+				-- IPC_STAT：读取消息队列的属性存储在buf中
+				-- IPC_SET：将buf属性设置给该消息队列
+				-- IPC_EMID：将该消息队列从内核中删除
+	int msgrcv(int msqid,void *msg_ptr,size_t msg_sz,long int msgtype,int msgflag);//从消息队列读取一条消息
+		-- msqid:消息队列标识符
+		-- msg_ptr:同下
+		-- msg_sz:同下
+		-- msgtype:从消息队列读取的消息形态，0表示所有消息都会被读取
+		-- msgflag:控制函数行为，0阻塞直到有消息可读，IPC_NOWAIT无消息直接返回不阻塞
+	int msgsnd(int msqid,const void *msg_ptr,size_t msg_sz,int msgflag);//将消息送入消息队列
+		-- msqid:消息队列标识符
+		-- msg_ptr：指向消息缓冲区的指针，该缓冲区暂时存储要发送的消息
+				--struct msgbuf{
+					long mtype;//消息类型，大于0
+					char mtext[1];//消息数据
+				}；
+		-- msg_sz:要发送的信息的长度，sizeof(struct msgbuf)-sizeof(long);
+		-- msgflg:控制函数行为0表示阻塞直到消息可以被写入，IPC_NOWAIT非阻塞，若无法送入消息，立即返回
+生成键值函数：系统建立IPC通信时必须指定一个键值
+	key_t ftok(char * fname,int id)
+		-- fname:指定的文件名
+		-- id:子序列
+		-- 需要保证文件不会被删除，因为删除后重建同名文件键值也会改变	
+信号量：控制多个进程访问计算机资源的共享机制，本质是一个计数器
+	semget
+	semop
+	semctl
+共享内存：速度最快，多个进程共享一段内存空间进行数据交换的机制
+	shmget:创建或打开
+	shmat:连接共享内存
+	shmctl:设置属性
+	shmdt:脱离共享内存
+-----------------------------线程-------------------------------------------------------------------
+创建线程不对进程拷贝，和进程共用所有资源,线程和进程不分离
+	编译时加上 -pthread
+	如果创建线程的进程结束了，所有线程都结束
+	将创建线程的进程称之为主线程
+	如果一个进程没有创建线程，即可以称为进程，也可以成为线程
+	cpu最小的调度单位为线程
+pthread_create()创建线程
+1，pthread_exit（）结束本线程，对其他线程没有影响
+2，pthread_cancel（）结束指定线程，接收到结束请求的线程会终止运行
+	在处理重要数据时可以设置为不接受结束请求（阻塞），pthread_setcancelstate，
+	等待线程结束pthread_join()，也可以设置分离线程，由系统回收线程资源；
+线程有两种状态，joinable和unjoinable
+	前者：线程退出时不会释放所占用的堆栈和线程描述符，只有调用pthread_join()函数才会释放
+	后者：在线程创建时或创建后调用，改为unjoinable状态，线程退出时自动释放所占资源。
+分离线程：
+	线程默认是非分离的，父线程会维护子线程的某些信息并等待子线程的结束，如果父线程没有调用pthread_wait函数，
+	子进程结束时，父线程维护的信息没有及时释放，如果创建多个子线程，可能堆栈空间不足出错返回
+分离函数：
+	int pthread_detach(id)；
+特点：
+	创建线程比创建进程的系统开销低
+	线程之间的通信简单快速
+	响应快
+	改善程序结构
+	使多处理系统更加有效
+线程标识符
+	获取自身标识符：pthread_self()
+	比较标识符：pthread_equal(1,2)
+创建线程：
+	int pthread_create(pthread_t * id,pthread_attr_t * attr,void *(*start_routine)(void *),void * arg);
+	-- id:传入即可，创建成功则把标识符放进去
+	-- attr:设置属性
+	-- start_routine:线程开始运行的函数，用户指定
+	-- arg:第三个函数所需的参数
+线程阻塞和退出：
+	int pthread_join(pthread_t thread,void ** retval);//阻塞等待线程退出
+	-- thread：要等待的线程id
+	-- retval:保存其他线程返回的参数
+	void pthread_exit(void * retval);//线程主动退出
+取消和清理线程：
+	int pthread_cancle(id);//请求取消同一进程中的其他线程，返回0，失败返回错误码
+	调用此函数取消了一个线程后，应该调用函数对线程退出之后的环境进行清理(线程清理处理程序)
+	viod pthread_cleanup_push(void (*routine)(void *),void * arg);
+	void pthread_cleanup_pop(int execute);
+
+	
+------------------------线程同步机制-----------------------------------------------------------------
+避免资源竞争问题之线程同步
+1.线程锁》》互斥量》》原子操作》》不能被打断
+2.信号量;将所有共享数据资源数据化，使用资源前检查信号量的值，大于零表示有资源可用
+	等于零表示没有资源可用，则阻塞等待
+	线程结束：exit是结束进程的函数，如果在线程中调用exit会把
+	进程和所有的线程都结束；最好不要在线程中调用
+互斥量或条件变量或临界区
+互斥锁：
+	原子性：操作系统保证如果一个线程锁定了一个互斥锁，没有其他线程可以在同一时间成功锁定这个互斥锁
+	唯一性：在一个线程锁定互斥锁后，在它解除锁定之前没有其他线程可以锁定这个互斥量
+	非繁忙等待：如果一个线程锁定了一个互斥锁，第二个线程又试图去锁定，则第二个线程将被挂起直到第一个线程
+		解除锁定，第二个线程才被唤醒同时锁定这个互斥锁
+	互斥锁初始化函数：
+		int pthread_mutex_init(pthread_mutex_t *mutex,const pthread_mutex_attr *attr);
+	互斥锁解除函数：
+		int pthread_mutex_destory(pthread_mutex_t *mutex);
+	互斥锁加锁函数：
+		int pthread_mutex_trylock(pthread_mutex_t * mutex);//不阻塞，失败返回错误
+		int pthread_mutex_lock(pthread_mutex_t *mutex);//阻塞等待资源解锁
+	互斥解锁函数：
+		int pthread_mutex_unlock(pthread_mutex_t *mutex);//调用本函数的线程必须是给互斥锁加锁的同一个线程
+条件变量：
+	互斥锁只有两种状态，条件变量是对互斥锁的补充，它允许线程阻塞并等待另一个线程发送的信号，当收到信号时，
+		阻塞的线程就被唤醒并试图锁定这个与之相关的互斥锁
+	条件变量初始化：
+		int pthread_cond_init(pthread_cond_t *cond,const pthread_cond_attr *attr);
+	条件变量解除函数：
+		int pthread _cond_destory(pthread_cond_t *cond);
+		清除cond指向的条件变量的任何状态，存储条件变量的内存空间不释放
+	条件变量阻塞函数:
+		int pthread_cond_wait(pthread_cond_t *cond,pthread_mutex_t *mutex);
+临界区：
+	获取临界区的锁称之为进入临界区，把锁的释放称之为离开临界区
+	与互斥锁和条件变量的不同：前两个在系统的任何进程都是可见的，而临界区的
+		的作用范围仅限于本进程，其他进程无法获取该锁
+
+可重入函数：
+	一个函数没有执行完成，有一次进入该函数执行
+	可重入表示该函数被重入之后不会产生任何不良后果，可在多线程环境下放心使用
+
+
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
