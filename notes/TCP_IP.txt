@@ -384,8 +384,8 @@ Nagle算法：
 		2 pid_t waitpid(pid_t pid,int * statloc,int options);//返回终止子进程ID或0，失败返回-1
 			-- pid:等待终止的目标子进程的ID，若传递-1，则等同于wait函数（等待任意子进程）
 			-- statloc:接受信息
-			-- options:传递头文件中的声明的常量WNOHANG，即使没有终止的子进程也不会进入阻塞，返0退出
-			-- 不阻塞
+			-- options:传递头文件中的声明的常量WNOHANG，即使pid子进程没有结束也不会进入阻塞，返0退出
+			-- 默认阻塞等待信号的到来或子进程结束
 信号处理：
 	父进程往往与子进程一样繁忙，因此不能之调用waitpid函数以等待子进程终止，所以向操作系统求助
 		由操作系统告诉父进程子进程的终止，此时父进程暂时放下工作去处理子进程终止相关事宜。
@@ -399,6 +399,7 @@ Nagle算法：
 		-- 返回void型参数为int的函数指针
 	调用时，第一个参数为信号，第二个参数为信号发生时将要调用的函数地址值
 		例如：signal(SIGINT,handler);
+		--handler:为SIG_ING代表忽略，为SIG_DFL代表默认处理，也可以为自定义处理函数的指针
 	alarm函数：
 	unsigned int alarm(unsigned int seconds);
 		-- seconds秒后发出SIGALRM信号
@@ -412,7 +413,7 @@ Nagle算法：
 		-- struct sigaction
 			{
 				void (*sa_handler)(int);//信号处理函数的地址值
-				sigset_t sa_mask;//sigemptyset(act.sa_mask)将所有位置0
+				sigset_t sa_mask;//sigemptyset(act.sa_mask)将所有位置0//需要被屏蔽的信号
 				int sa_flags;//0
 			}
 进程间通信：
@@ -424,6 +425,7 @@ Nagle算法：
 	双向传输数据问题：
 		数据进入管道后成为无主数据，若写数据后直接读会取出刚写进去的无主数据。可以sleep
 -------------------------I/O复用-----------------------------------------------------
+I/O复用就是单个线程通过记录跟踪每一个Sock(I/O流)的状态来同时管理多个I/O流.
 	在不创建进程的同时向多个客户端提供服务	
 select函数：
 	调用方法：设置文件描述符->指定监视范围->设置超时->调用本函数->查看调用结果
