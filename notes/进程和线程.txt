@@ -53,7 +53,7 @@ setsid()函数：
 销毁进程：
 	子进程终止时将产生SIGCHLD信号，可以利用各种信号函数完成消灭僵尸进程
 		用sigaction函数注册该信号，在注册函数中调用waitpid函数即可
-	wait()：阻塞等待子进程
+	pid_t wait(int * status);//阻塞等待子进程
 		WIFEXITED(status):子进程正常结束返回真
 		WIFSIGNALED(status):子进程异常结束返回真
 		WEXITSTATUS(status):正常返回时调用，返回状态字的底八位
@@ -108,8 +108,6 @@ setsid()函数：
 			int sival_int;
 			void * sival_ptr;//只想要传递的信号参数
 		}sigval_t;
-		
-		
 	alarm函数：定时发送信号函数
 		unsigned int alarm(unsigned int seconds);
 		调用后所有以前的alarm调用都将无效，如果调用alarm之前进程中设置了闹钟时间，
@@ -127,8 +125,13 @@ setsid()函数：
 信号的阻塞和挂起：
 	阻塞：
 		int sigprocmask(int how,const sigset_t * set,sigset_t * oldset);
+		--how:SIG_BLOCK表示加入信号屏蔽，SIG_UNBLOCK表示删除信号屏蔽，SIG_SETMASK表示重设信号屏蔽集
+		--成功返0，失败返回-1，并errno设置为EINVAL
 	挂起：
 		int sigsuspend(const sigset_t * set);
+		int sigpending(sigset_t * set);
+		--判断信号是否悬而未决即阻塞未处理
+		--将这种信号存储在set中
 精准定时：
 	setitimer函数
 可重入函数：
@@ -141,9 +144,17 @@ setsid()函数：
 		调用了malloc函数和free函数
 		调用了标准I/O函数
 		进行了浮点运算
+SIGCHLD信号：
+	子进程结束时父进程会收到这个信号（父进程或者忽略该信号，或者捕捉它，或者等待它的子进程结束，或者
+	父进程先终止，由init进程接管该子进程）
 ------------------------------进程同步机制-----------------------------------------------------
 匿名管道:	只存在内存中(结束则消失)，亲缘进程的通信，即fork出来的各个进程
 	pipe(int fd[2])函数
+特殊情况;
+		写端关闭，读端读取管道中的剩余数据后再次读会返回0，就像读到文件末尾一样
+		写端没关但不写数据，读端读取剩余数据后再次读会阻塞等待
+		写端关闭后再写会收到SIGPIPE信号，默认自动终止，也可以自定义处理函数
+		写端没关，读端未读，则管道满了(4kb)，则写阻塞等待
 命名管道：	文件形式存在于文件系统中(类似一个设备，不删除即存在)，所有能访问该文件的进程都可使用
 		先进先出，不支持文件定位操作
 	在shell中使用mkfifo [option] name 即可创建一个命名管道
@@ -164,12 +175,36 @@ IPC机制：system V ipc 继承自unix 包括 消息队列 信号量 共享内�
 消息队列：客户端发送的请求服务器不能及时处理，将请求放在消息队列中
 			先返回客户端发送请求成功，再在消息队列中取请求执行
 	存在内核中的一种链表式结构组织的数据
-	创建：
-	int msgget(ket_y key,int msgflg);
-		-- key:为IPC_PRIVATE时，不管msgflag是啥，都创建一个新的消息队列
-	msgctl
-	msgrcv
-	msgsnd
+	#include <sys/msg.h>
+	int msgget(ket_y key,int msgflg);//创建或打开消息队列
+		-- key:标识一个消息队列，为IPC_PRIVATE时，不管msgflag是啥，都创建一个新的消息队列
+		-- msgflg:IPC_CREATE|IPC_EXCL//存在则打开，不存在则创建
+	int msgctl(int msqid,int cmd,struct msqid_ds * buf);//获取和设置消息队列的属性
+		-- msqid:消息队列标识符
+		-- cmd:要对消息队列进行的操作
+				-- IPC_STAT：读取消息队列的属性存储在buf中
+				-- IPC_SET：将buf属性设置给该消息队列
+				-- IPC_EMID：将该消息队列从内核中删除
+	int msgrcv(int msqid,void *msg_ptr,size_t msg_sz,long int msgtype,int msgflag);//从消息队列读取一条消息
+		-- msqid:消息队列标识符
+		-- msg_ptr:同下
+		-- msg_sz:同下
+		-- msgtype:从消息队列读取的消息形态，0表示所有消息都会被读取
+		-- msgflag:控制函数行为，0阻塞直到有消息可读，IPC_NOWAIT无消息直接返回不阻塞
+	int msgsnd(int msqid,const void *msg_ptr,size_t msg_sz,int msgflag);//将消息送入消息队列
+		-- msqid:消息队列标识符
+		-- msg_ptr：指向消息缓冲区的指针，该缓冲区暂时存储要发送的消息
+				--struct msgbuf{
+					long mtype;//消息类型，大于0
+					char mtext[1];//消息数据
+				}；
+		-- msg_sz:要发送的信息的长度，sizeof(struct msgbuf)-sizeof(long);
+		-- msgflg:控制函数行为0表示阻塞直到消息可以被写入，IPC_NOWAIT非阻塞，若无法送入消息，立即返回
+生成键值函数：系统建立IPC通信时必须指定一个键值
+	key_t ftok(char * fname,int id)
+		-- fname:指定的文件名
+		-- id:子序列
+		-- 需要保证文件不会被删除，因为删除后重建同名文件键值也会改变	
 信号量：控制多个进程访问计算机资源的共享机制，本质是一个计数器
 	semget
 	semop
@@ -180,33 +215,62 @@ IPC机制：system V ipc 继承自unix 包括 消息队列 信号量 共享内�
 	shmctl:设置属性
 	shmdt:脱离共享内存
 -----------------------------线程-------------------------------------------------------------------
-创建线程不对进程拷贝，和进程共用所有资源
-线程和进程不分离
-pthread_create()创建线程
-编译时加上 -pthread
-如果创建线程的进程结束了，所有线程都结束
-将创建线程的进程称之为主线程
-如果一个进程没有创建线程，即可以称为进程，也可以成为线程
-cpu最小的调度单位为线程
-避免资源竞争问题之线程同步
-1.线程锁》》互斥量》》原子操作》》不能被打断
-2.信号量;将所有共享数据资源数据化，使用资源前检查信号量的值，大于零表示有资源可用
-等于零表示没有资源可用，则阻塞等待
-线程结束：exit是结束进程的函数，如果在线程中调用exit会把
-进程和所有的线程都结束；最好不要在线程中调用
-1，pthread_exit（）结束本线程，对其他线程没有影响
-2，pthread_cancel（）结束指定线程，接收到结束请求的线程会终止运行
-在处理重要数据时可以设置为不接受结束请求（阻塞），pthread_setcancelstate，
-等待线程结束pthread_join()，也可以设置分离线程，由系统回收线程资源；
-线程有两种状态，joinable和unjoinable
-前者：线程退出时不会释放所占用的堆栈和线程描述符，只有调用pthread_join()函数才会释放
-后者：在线程创建时或创建后调用，改为unjoinable状态，线程退出时自动释放所占资源。
-分离线程：
-	线程默认是非分离的，父线程会维护子线程的某些信息并等待子线程的结束，如果父线程没有调用pthread_wait函数，
-		子进程结束时，父线程维护的信息没有及时释放，如果创建多个子线程，可能堆栈空间不足出错返回
-	分离函数：
-	int pthread_detach(id)；
-//	4/2/2019	
+创建线程不对进程拷贝，和进程共用所有资源,线程和进程不分离
+	编译时加上 -pthread
+	如果创建线程的进程结束了，所有线程都结束
+	将创建线程的进程称之为主线程
+	如果一个进程没有创建线程，即可以称为进程，也可以成为线程
+	cpu最小的调度单位为线程
+int pthread_create(pthread_t *pid,const pthread_attr_t *attr,void *(*start_routine)(void *),void *arg);//创建线程
+	-- pid :指针，指向线程创建成功后的线程ID
+	-- attr:线程属性结构体指针，NULL表示使用默认属性
+	-- start_routine:线程创建后要执行的函数
+	-- arg:指向传递给线程函数的参数
+	-- 成功返回0
+线程属性联合体	union pthread_attr_t
+	获取线程属性的函数使用方法:
+		#define _GUN_SOURCE
+		#include <pthread.h>
+		int pthread_getattr_np(pthread_t thread,pthread_attr_t * geted_attr);
+		一系列获取状态的函数 例：pthread_attr_getdetachstate(&geted_attr，&state);
+		//使用完需要销毁该获得的联合体
+		int pthread_attr_destory(pthread_attr_t *geted_attr)
+	分离状态：
+			线程有两种状态，joinable(非分离)和unjoinable(分离)
+			前者：线程退出时不会释放所占用的堆栈和线程描述符，只有调用pthread_join()函数才会释放
+				  非分离线程可在主线程中使用pthread_join函数等待子线程的结束
+			后者：在线程创建时或创建后调用，改为unjoinable状态，线程退出时自动释放所占资源。
+				  分离线程没有pthread_join函数，可以让主线程先退出而进程不退出，一直等到子线程退出了进程才退出。在main线程中执行pthread_exit终止main线程，但进程的资源会为main线程
+				  创建的其他线程保持打开的状态，直到其他线程都终止。（非main线程中调用pthread_exit函数，只退出当前线程）
+		分离线程：
+			线程默认是非分离的，父线程会维护子线程的某些信息并等待子线程的结束，如果父线程没有调用pthread_wait函数，
+			子进程结束时，父线程维护的信息没有及时释放，如果创建多个子线程，可能堆栈空间不足出错返回
+		分离：
+			（1）int pthread_detach(id)；//线程创建完成后，将id指定的线程设置为分离线程
+			（2）创建时设置分离属性	pthread_attr_init(&thread_attr)-->pthread_attr_setdetachstate(&thread_attr,PTHREAD_CREATE_DETACHED)-->pthread_create(,&thread_attr,,);
+	调度策略和参数：
+		实时与非实时：前者通过优先级来抢占cpu，Linux是一个非实时系统，但其线程也分实时和非实时！
+		（1）SCHED_OTHER（分时调度策略）默认
+		（2）SCHED_FIFO（先来先服务）
+		（3）SCHED_RR（时间片轮循）
+	作用域：
+	栈尺寸：
+		//获取线程默认栈尺寸的函数,//首尾工作同上
+		int pthread_attr_getstacksize(pthread_attr_t *geted_attr,size_t *stacksize);
+	栈地址：
+	优先级：
+		//获得最大或最小优先级函数
+		int sched_get_priority_min(int policy);//参数为三种策略，返回值为优先级数
+		-----------------------max-----------------------------//同上
+	等
+int pthread_join(pthread_t pid,void **value_ptr);
+	-- pid:等待的线程号
+	-- value_ptr：复制一份线程退出值到一个内存区域中，该指针指向该内存
+	-- 成功返回0，失败返回错误码
+pthread_exit（）结束本线程，对其他线程没有影响
+pthread_cancel（）结束指定线程，接收到结束请求的线程会终止运行
+	在处理重要数据时可以设置为不接受结束请求（阻塞），pthread_setcancelstate，
+	等待线程结束pthread_join()，也可以设置分离线程，由系统回收线程资源；
 特点：
 	创建线程比创建进程的系统开销低
 	线程之间的通信简单快速
@@ -229,12 +293,55 @@ cpu最小的调度单位为线程
 	void pthread_exit(void * retval);//线程主动退出
 取消和清理线程：
 	int pthread_cancle(id);//请求取消同一进程中的其他线程，返回0，失败返回错误码
+		-- 本函数不一定能取消陷入死循环的线程
+		-- 可以在线程处理函数中可能发生死循环的地方调用
+	int pthread_testcancel()函数，让内核去检测是否需要取消该线程
 	调用此函数取消了一个线程后，应该调用函数对线程退出之后的环境进行清理(线程清理处理程序)
 	viod pthread_cleanup_push(void (*routine)(void *),void * arg);
+		-- routinue:函数指针
+		-- arg:参数指针
+		-- 由该函数压栈的routinue函数何时执行
+			（1）线程主动结束时，比如return或pthread_exit
+			（2）调用函数pthread_clearnup_pop,且其参数为非0时（弹出压栈的函数，不执行，因为参数为0）
+			（3）线程被其他线程取消时，即被调用pthead_cancel()函数
 	void pthread_cleanup_pop(int execute);
-
-	
+		-- execute:为0时不执行清理函数，非0时则执行清理函数
+		-- 此函数必须与push函数成对出现（即使不执行（放在return语句后）），否则出错
+给同进程的线程发送信号
+	int pthread_kill(pthread_t pthread,int signal);//不是杀死，只是发信号，被发送信号的线程要注册该信号的处理函数
+		//发送0可以检测线程是否存在，存在返回0，不存在返回错误码，如ESRCH表示线程不存在，EINVAL表示信号不合法
+		//如果被发送信号的线程没有注册信号处理函数，则按照信号默认的行为影响整个进程。
+线程的结束：
+	（1）在线程函数中调用pthread_exit()函数			//主动//不会导致C++对象被析构
+	（2）线程所属的进程结束了，比如调用了exit函数	//被动//不要用，C++对象不会被销毁，内存泄漏
+	（3）线程函数执行结束后返回						//主动//推荐使用，正常结束线程
+	（4）线程被同一进程下的其他线程通知结束或取消	//被动//用于用户等不及这个线程的结果使其结束或取消
+------------------------C++ 11 中的线程类--------------------------------------------------------------
+专用命名空间：
+	std::this_thread::******
+常用线程类成员函数：
+	thread:构造函数有4种
+	get_id:获得线程ID
+	joinable:判断线程对象是否可连接
+	join:阻塞函数，等待线程结束
+	native_handle:用于获得与操作系统相关的原生线程句柄
+	swap:线程交换
+	detach:分离线程
+	yield:让出自己的CPU时间片
+	sleep_until:阻塞到某个时间点
+	sleep_for：阻塞一段时间
+创建：
+	thread();//默认构造函数，线程函数不执行
+	thread(线程函数指针);
+	thread(线程函数，参数);
+	thread(move(thread_other));被移动线程不会执行，因为它的线程函数移动给本线程了
 ------------------------线程同步机制-----------------------------------------------------------------
+避免资源竞争问题之线程同步
+1.线程锁》》互斥量》》原子操作》》不能被打断
+2.信号量;将所有共享数据资源数据化，使用资源前检查信号量的值，大于零表示有资源可用
+	等于零表示没有资源可用，则阻塞等待
+	线程结束：exit是结束进程的函数，如果在线程中调用exit会把
+	进程和所有的线程都结束；最好不要在线程中调用
 互斥量或条件变量或临界区
 互斥锁：
 	原子性：操作系统保证如果一个线程锁定了一个互斥锁，没有其他线程可以在同一时间成功锁定这个互斥锁

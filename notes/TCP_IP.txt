@@ -1,3 +1,4 @@
+-------------------------------------基础、结构、函数--------------------------------
 计算机网络中的硬件	
 	路由器：根据IP转发信息
 	集线器: 将局域网中的多台计算机连接到一起，广播型连接
@@ -61,7 +62,7 @@ C/S准备工作异同:
 	服务端的sockaddr_in结构体初始化为服务器端IP和套接字的端口号，然后bind；
 	客户端的sockaddr_in结构体初始化为要与之连接的服务器端套接字的IP和端口号，然后connect；
 INADDR_ANY:
-	自动获取运行服务端的计算机IP地址。一般用于服务端。
+	自动获取运行服务端的计算机IP地址。一般用于服务端。！
 方式
 	SOCK_STREAM:使用TCP协议，可靠传输
 	SOCK_DGRAM:使用UDP协议，不可靠协议
@@ -75,8 +76,8 @@ INADDR_ANY:
 
 	socket(AF_INET,SOCK_STREAM,0);
 	类型--seraddr_in.sin_family=AF_INET;
-	端口--seraddr_in.sin_addr.s_addr=inet_addr("192.168.57.129")--点分ip转整数
-	地址--seraddr_in.sin_port=htons(8888);--本地转换网络字节序（大小端）
+	地址--seraddr_in.sin_addr.s_addr=inet_addr("192.168.57.129")--点分ip转整数
+	端口--seraddr_in.sin_port=htons(8888);--本地转换网络字节序（大小端）
 	未用--bzero(seraddr.sin_zero,8);
 	bind(sockfd,(struct sockaddr *)&seraddr,sizeof(seraddr));
 	listen(sockfd,20);--定义连接队列数20
@@ -124,7 +125,8 @@ INADDR_ANY:
 	--0;参数二的默认协议
 	socket(AF_INET,SOCK_STREAM,0);
 	类型--seraddr_in.sin_family=AF_INET;
-	端口--seraddr_in.sin_addr.s_addr=inet_addr("192.168.57.129")--点分ip转整数
+	端口--seraddr_in.sin_addr.s_addr=inet
+	_addr("192.168.57.129")--点分ip转整数
 	地址--seraddr_in.sin_port=htons(8888);--本地转换网络字节序（大小端）
 	未用--bzero(seraddr.sin_zero,8);
 	connect(sockfd,(struct sockaddr *)&seraddr,sizeof(seraddr));
@@ -200,13 +202,17 @@ TCP套接字从创建到消失过程：
                               ACK
 			  [SEQ:7500 ACK:5001]
 	<----------------------------
-	FIN
-	[SEQ:7501 ACK:5001]
-	---------------------------->
 							  ACK
 			  [SEQ:5001 ACK:7502]
 	<----------------------------
+	FIN
+	[SEQ:7501 ACK:5001]
+	---------------------------->
+
 	FIN：表示连接断开
+	ACK:确认应答
+	SEQ：数据包序号
+	SYN：连接请求
 	向主机A传递了两次ACK5001，原因：主机A接受ACK消息后未接受数据而重传的
 ------------------------UDP------------------------------------------------------------
 不可靠的数据传输服务，IP让离开主机的UDP数据包准确传递到目标主机，但把UDP包最终交给
@@ -217,6 +223,8 @@ TCP套接字从创建到消失过程：
 	性能比TCP高
 	编程实现简单
 数据传输过程：
+	服务器：socket()-->bind()--> 【recvfrom()-->sendto()】 -->close()
+	客户端：socket()--> 【sendto()-->recvfrom() 】 -->close()
 	UDP的服务器端和客户端不需要连接，没有listen函数和accept函数过程
 	只有创建套接字的过程和数据交换过程。
 	TCP中，套接字是一对一的，若要向是个客户端提供服务，除了守门的服务端套接字，还需要
@@ -227,7 +235,7 @@ TCP套接字从创建到消失过程：
 	udp_client:socket-->循环（输入-->发送-->接收-->输出）
 相关函数：
 	发送数据函数：
-	ssize_t sento(int sock,void *buff,size_t nbytes,int flags,
+	ssize_t sendto(int sock,void *buff,size_t nbytes,int flags,
 					struct sockaddr *to,socklen_t addrlen);
 		-- sock :用于传输数据的UDP套接字文件描述符
 		-- buff :保存待传输数据的缓冲地址值
@@ -248,12 +256,14 @@ TCP套接字从创建到消失过程：
 		-- flags :可选项参数，若没有则传递0
 		-- from :存有发送端地址信息的sockaddr结构体变量的地址值
 		-- addrlen :保存参数from的结构体变量长度的变量地址值
+必须保证UDP通信过程中使I/O函数调用次数保持一致
 UDP客户端套接字的地址分配:
 	调用sendto函数时自动分配IP和端口号。
 	TCP套接字中需要注册待传输数据的目标IP和端口号，而UDP中则无需注册。
 UDP套接字：
 	已连接UDP套接字：注册了目标地址信息
 	未连接UDP套接字：未注册目标地址信息
+	要与同一主机进行长时间通信，将UDP套接字变成已连接套接字会提高效率
 	创建已连接UDP套接字:
 		调用connect函数为套接字注册目标地址信息
 ------------------------套接字断开------------------------------------------------------------
@@ -374,8 +384,8 @@ Nagle算法：
 		2 pid_t waitpid(pid_t pid,int * statloc,int options);//返回终止子进程ID或0，失败返回-1
 			-- pid:等待终止的目标子进程的ID，若传递-1，则等同于wait函数（等待任意子进程）
 			-- statloc:接受信息
-			-- options:传递头文件中的声明的常量WNOHANG，即使没有终止的子进程也不会进入阻塞，返0退出
-			-- 不阻塞
+			-- options:传递头文件中的声明的常量WNOHANG，即使pid子进程没有结束也不会进入阻塞，返0退出
+			-- 默认阻塞等待信号的到来或子进程结束
 信号处理：
 	父进程往往与子进程一样繁忙，因此不能之调用waitpid函数以等待子进程终止，所以向操作系统求助
 		由操作系统告诉父进程子进程的终止，此时父进程暂时放下工作去处理子进程终止相关事宜。
@@ -389,6 +399,7 @@ Nagle算法：
 		-- 返回void型参数为int的函数指针
 	调用时，第一个参数为信号，第二个参数为信号发生时将要调用的函数地址值
 		例如：signal(SIGINT,handler);
+		--handler:为SIG_ING代表忽略，为SIG_DFL代表默认处理，也可以为自定义处理函数的指针
 	alarm函数：
 	unsigned int alarm(unsigned int seconds);
 		-- seconds秒后发出SIGALRM信号
@@ -402,7 +413,7 @@ Nagle算法：
 		-- struct sigaction
 			{
 				void (*sa_handler)(int);//信号处理函数的地址值
-				sigset_t sa_mask;//sigemptyset(act.sa_mask)将所有位置0
+				sigset_t sa_mask;//sigemptyset(act.sa_mask)将所有位置0//需要被屏蔽的信号
 				int sa_flags;//0
 			}
 进程间通信：
@@ -414,6 +425,7 @@ Nagle算法：
 	双向传输数据问题：
 		数据进入管道后成为无主数据，若写数据后直接读会取出刚写进去的无主数据。可以sleep
 -------------------------I/O复用-----------------------------------------------------
+I/O复用就是单个线程通过记录跟踪每一个Sock(I/O流)的状态来同时管理多个I/O流.
 	在不创建进程的同时向多个客户端提供服务	
 select函数：
 	调用方法：设置文件描述符->指定监视范围->设置超时->调用本函数->查看调用结果
@@ -425,7 +437,7 @@ select函数：
 		FD_ISSET(int fd,fd_set * fdset):若该文件描述符是监视对象，返回真
 	int select(int maxfd,fd_set * readset,fd_set * writeset,fd_set * exceptset,
 				const struct timeval * timeout);
-		-- //返回大于0的值，失败返回-1
+		-- //返回大于0的值(发生变化的文件描述符的数量)，失败返回-1
 		-- maxfd:监视对象文件描述符数量
 		-- readset:将所有关注“是否存在待读数据”的文件描述符注册到fd_set，并传递地址值
 		-- writeset:---------“是否可传输无阻塞数据”----------------------------------
@@ -636,6 +648,11 @@ epoll服务器端实现所需要的三个函数：
 	调用pthread_detach函数
 	int pthread_detach(pthread_t thread);
 		-- //返回0，失败时返回其他值
+死锁：
+	互斥性
+	持有
+	不可剥夺
+	环形等待
 ------------------HTTP----------------------------------------------------------------
 HTTP服务器端：即Web服务器端
 	基于HTTP协议，将网页对应文件传输给客户端的服务器端
