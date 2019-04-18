@@ -55,9 +55,9 @@ Dockerfile:#最多127层#可存任何地方任何名字 用-f 绝对路径指定
 		复制文件到镜像#绝对路径|相对Dockerfile路径|url|tar文件
 	COPY ：
 		COPY [--chown=<user>:<group>] a b 		#复制上下文目录中的文件a到镜像中b，自动解压
-		#COPY [--chown=<user>:<group>] ["a","b"]	#仅复制，无解压等功能
+		COPY [--chown=<user>:<group>] ["a","b"]	#仅复制，无解压等功能
 	VOLUME ：
-		VOLUME ["/data"] 创建挂载点#运行时用mydata:/data覆盖，即mydata命名卷覆盖/data
+		VOLUME ["/data"] 创建挂载点#也可以在运行时用mydata:/data覆盖，即mydata命名卷覆盖/data
 	USER ：
 		指定容器运行时的用户名或UID 后续RUN也会使用指定用户
 	EXPOSE ：
@@ -69,11 +69,11 @@ Dockerfile:#最多127层#可存任何地方任何名字 用-f 绝对路径指定
 		为后续的RUN CMD ENTRYPOINT 指定配置工作目录
 	ENTRYPOINT(#入口点) ：
 		配置容器启动后执行的命令 #最后一条有效，运行时加--entrypoint替代
-		#ENTRYPOINT "<CMD>" #都指定时具体运行指令
+		ENTRYPOINT "<CMD>" #都指定时具体运行指令
 	CMD ：
 		shell格式:CMD<命令> 指定容器启动后运行的命令#只有最后一条有效
-		#exec格式：CMD ["可执行文件","参数"...]      #运行时指令可直接替代
-		#参数列表格式：CMD ["参数1","参数2",...]	  #若存在ENTRYPOINT 则为其指定具体的参数，运行时不覆盖
+		#exec格式：CMD ["可执行文件","参数"...]     #运行时指令可直接替代
+		#参数列表格式：CMD ["参数1","参数2",...]	#若存在ENTRYPOINT 则为其指定具体的参数，运行时不覆盖
 	ARG ：
 		<参数名>[=默认值] 构建参数 #构建环境的环境变量，容器运行时不存在
 		#可用--build-arg替换ARG已定义的构建环境的环境变量
@@ -85,7 +85,7 @@ Dockerfile:#最多127层#可存任何地方任何名字 用-f 绝对路径指定
 		当所创建的镜像被当做其他镜像的基础镜像时所执行的操作指令
 构建镜像：
 	Dockerfile编写完成后可以使用docker build 来生成镜像
-	如：docker [image] build -t "hn/myubuntu:v1.0" . -t用来添加tag标签。
+	如：docker [image] build -t "hn/myubuntu:v1.0" .   //-t用来添加tag标签。
 	最后的.可以不准确地理解为代表在哪个目录下的Dockerfile
 	准确地描述是指定 上下文路径 docker build命令会把该目录下的内容打包给Docker引擎
 	以帮助构建镜像。
@@ -126,7 +126,7 @@ Dockerfile:#最多127层#可存任何地方任何名字 用-f 绝对路径指定
 停止容器：
 	docker stop id
 退出容器：
-	exit	退出即停止-- 守护容器依然停止
+	exit	退出即停止--  //run启动的退出，start启动后exec进入再exit不退出
 	ctrl+d	退出即停止
 	ctrl+P+Q 退出但不停止容器
 删除容器：

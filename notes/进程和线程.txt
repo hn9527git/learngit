@@ -316,6 +316,8 @@ pthread_cancel（）结束指定线程，接收到结束请求的线程会终止
 	（2）线程所属的进程结束了，比如调用了exit函数	//被动//不要用，C++对象不会被销毁，内存泄漏
 	（3）线程函数执行结束后返回						//主动//推荐使用，正常结束线程
 	（4）线程被同一进程下的其他线程通知结束或取消	//被动//用于用户等不及这个线程的结果使其结束或取消
+	注：exit是结束进程的函数，如果在线程中调用exit会把
+	进程和所有的线程都结束；最好不要在线程中调用
 ------------------------C++ 11 中的线程类--------------------------------------------------------------
 专用命名空间：
 	std::this_thread::******
@@ -335,47 +337,113 @@ pthread_cancel（）结束指定线程，接收到结束请求的线程会终止
 	thread(线程函数指针);
 	thread(线程函数，参数);
 	thread(move(thread_other));被移动线程不会执行，因为它的线程函数移动给本线程了
+线程同步：
+	（1）基本互斥锁，std::mutex
+		成员函数：
+			mutex:构造函数
+			lock:上锁，阻塞等待其他线程解锁后再本线程上锁
+			unlock:解锁，配对使用
+			Try_lock：如果没上锁，则上锁
+			native_handle:得到本地互斥锁句柄
+	（2）递归互斥锁，std::recursive_mutex
+	（3）定时互斥锁，std::time_mutex
+		成员函数：
+			mutex:构造函数
+			lock:上锁，阻塞等待其他线程解锁后再本线程上锁
+			try_lock:没上锁则努力上锁，但不阻塞
+			try_lock_for:没上锁则再一定时间内努力上锁，过了时间就退出
+			native_handle:得到本地互斥锁句柄
+	（4）定时递归互斥锁，std::time_mutex
 ------------------------线程同步机制-----------------------------------------------------------------
-避免资源竞争问题之线程同步
-1.线程锁》》互斥量》》原子操作》》不能被打断
-2.信号量;将所有共享数据资源数据化，使用资源前检查信号量的值，大于零表示有资源可用
+临界资源：
+	一次仅允许一个线程使用的共享资源，各个线程应该互斥地访问
+临界区：
+	每个线程中访问临界资源的那段代码称为临界区临界区：
+	获取临界区的锁称之为进入临界区，把锁的释放称之为离开临界区
+	与互斥锁和条件变量的不同：前两个在系统的任何进程都是可见的，而临界区的
+	的作用范围仅限于本进程，其他进程无法获取该锁
+信号量:
+	将所有共享数据资源数据化，使用资源前检查信号量的值，大于零表示有资源可用
 	等于零表示没有资源可用，则阻塞等待
-	线程结束：exit是结束进程的函数，如果在线程中调用exit会把
-	进程和所有的线程都结束；最好不要在线程中调用
-互斥量或条件变量或临界区
 互斥锁：
 	原子性：操作系统保证如果一个线程锁定了一个互斥锁，没有其他线程可以在同一时间成功锁定这个互斥锁
 	唯一性：在一个线程锁定互斥锁后，在它解除锁定之前没有其他线程可以锁定这个互斥量
 	非繁忙等待：如果一个线程锁定了一个互斥锁，第二个线程又试图去锁定，则第二个线程将被挂起直到第一个线程
 		解除锁定，第二个线程才被唤醒同时锁定这个互斥锁
+	定义一个互斥变量：
+		pthread_mutex_t mutex;
 	互斥锁初始化函数：
-		int pthread_mutex_init(pthread_mutex_t *mutex,const pthread_mutex_attr *attr);
-	互斥锁解除函数：
-		int pthread_mutex_destory(pthread_mutex_t *mutex);
+		//动态方式
+		int pthread_mutex_init(pthread_mutex_t *[restrict]mutex,const pthread_mutex_attr *[restrict]attr);
+			--[restrict]:只用于限定指针，用于告知编译器所有修改该指针指向内容的操作全部基于该指针，即不存在其他修改途径
+			--优点：帮助编译器进行更好的代码优化，生成更有效率的汇编代码
+		//静态方式，不需要销毁
+		#define PTHREAD_MUTEX_INITIALIZER {{0,0,0,0,0,{0}}}
+		pthread_mutex_t mutex=PTHREAD_MUTEX_INITIALIZER;//注意此处mutex不能是指针
 	互斥锁加锁函数：
 		int pthread_mutex_trylock(pthread_mutex_t * mutex);//不阻塞，失败返回错误
 		int pthread_mutex_lock(pthread_mutex_t *mutex);//阻塞等待资源解锁
 	互斥解锁函数：
 		int pthread_mutex_unlock(pthread_mutex_t *mutex);//调用本函数的线程必须是给互斥锁加锁的同一个线程
+	互斥锁解除函数：
+		int pthread_mutex_destory(pthread_mutex_t *mutex);
+读写锁：
+	以读模式加锁后，当有多个线程试图再以读模式加锁时，并不会造成这些线程阻塞等待解锁
+	大大增加了并发效率，并不是速度一定比互斥锁快
+	特点：
+		（1）如果一个线程用读锁锁定了临界区，那么其他线程也可以用读锁来进入临界区，就可以并行操作了，但如果再用写锁加锁就会造成阻塞，写锁请求阻塞后，
+		后面继续有读锁来请求时，这些读锁就会被阻塞，这样避免了读锁长期占用资源，防止了写锁饥饿
+		（2）如果一个写锁锁定了临界区，那么其他线程的读写锁都会阻塞
+	定义读写锁:
+		pthread_rwlock_t rwlock;
+	读写锁初始化：
+		//常量初始化，不需要销毁
+		pthread_rwlock_t rwlock=PTHREAD_RWLOCK_INITILIZER;//不能是指针
+		//函数初始化
+		int pthread_rwlock_init(pthread_rwlock_t *[restrict] rwlock,const pthread_rwlockattr_t * restrict attr);
+			-- rwlock:表示读写锁
+			-- attr:读写锁属性结构体指针，NULL表示默认属性
+			-- 成功返回0，失败返回错误码
+	读写锁上锁函数：
+		//读写锁读模式上锁
+		int pthread_rwlock_rdlock(pthread_rwlock__t * rwlock);//阻塞等待资源解锁
+		int pthread_rwlock_tryrdlock(pthread_rwlock__t * rwlock);//不阻塞，无可用资源返回EBUSY
+		//读写锁写模式上锁
+		int pthread_rwlock_wrlock(pthread_rwlock__t * rwlock);//阻塞等待资源解锁
+		int pthread_rwlock_trywrlock(pthread_rwlock__t * rwlock);//不阻塞，无可用资源返回EBUSY
+	读写锁销毁函数：
+		int pthread_rwlock_destory(pthread_rwlock__t * rwlock);
 条件变量：
 	互斥锁只有两种状态，条件变量是对互斥锁的补充，它允许线程阻塞并等待另一个线程发送的信号，当收到信号时，
 		阻塞的线程就被唤醒并试图锁定这个与之相关的互斥锁
+	定义一个条件变量：
+		pthread_cond_t cond;
 	条件变量初始化：
+		//函数初始化
 		int pthread_cond_init(pthread_cond_t *cond,const pthread_cond_attr *attr);
+		//静态初始化
+		pthread_cond_t cond=PTHREAD_COND_INITIALIER;//不能是指针
+		清除cond指向的条件变量的任何状态，存储条件变量的内存空间不释放
+	等待条件变量函数:
+		int pthread_cond_wait(pthread_cond_t *[restrict] cond,pthread_mutex_t *[restrict] mutex);
+			-- cond:条件变量指针
+			-- mutex:互斥锁变量指针
+		//调用后发生原子操作：线程将mutex解锁，线程被条件变量cond阻塞。
+		//可以被pthread_cond_signal()或pthread_cond_broadcast()函数唤醒，如果唤醒后条件还不满足，则继续阻塞
+	唤醒等待条件变量的函数
+		int pthread_cond_signal(pthread_cond_t * cond);
+			--只唤醒一个等待该条件变量的线程
+		int pthread_cond_broadcast();
+			--唤醒所有等待该条件变量的线程
 	条件变量解除函数：
 		int pthread _cond_destory(pthread_cond_t *cond);
-		清除cond指向的条件变量的任何状态，存储条件变量的内存空间不释放
-	条件变量阻塞函数:
-		int pthread_cond_wait(pthread_cond_t *cond,pthread_mutex_t *mutex);
-临界区：
-	获取临界区的锁称之为进入临界区，把锁的释放称之为离开临界区
-	与互斥锁和条件变量的不同：前两个在系统的任何进程都是可见的，而临界区的
-		的作用范围仅限于本进程，其他进程无法获取该锁
 
 可重入函数：
 	一个函数没有执行完成，有一次进入该函数执行
 	可重入表示该函数被重入之后不会产生任何不良后果，可在多线程环境下放心使用
-
+--------------------------------------线程池-------------------------------------------------------------------
+提前创建一堆线程，初始都处于空闲等待状态，当有任务时，就取一个线程来处理，处理后再放进线程池中，避免了创建销毁线程的开销
+适用于连续产生大量并发任务的场合
 
 	
 	
