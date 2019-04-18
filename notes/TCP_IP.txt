@@ -45,7 +45,8 @@ IP:  IPV4
 网络地址转换：
 	sockaddr_in中保存的地址信息的成员为32位整形数，为了分配IP地址，需要转换为
 		32位整数形数据。即192.168.61.129转换为32位1或0；
-	in_addr_t(unsigned long) inet_addr(const char * string);成功返回32位大端序整数型数。
+	in_addr_t(unsigned long) 
+	inet_addr(const char * string);成功返回32位大端序整数型数。
 	int inet_aton(const char * string, struct in_addr * addr);直接存入addr中，常用。
 	将整数型IP地址转换为点分十进制字符串的函数：
 	char * inet_ntoa(struct in_addr adr);成功返回转换的字符串地址值失败返回-1.
@@ -66,12 +67,27 @@ INADDR_ANY:
 方式
 	SOCK_STREAM:使用TCP协议，可靠传输
 	SOCK_DGRAM:使用UDP协议，不可靠协议
-	SOCK_RAW:需要手动封装和解析
+	SOCK_RAW:需要手动封装和解析，可以读取内核没有处理的IP数据包
 基于TCP的C/S架构模型
 	客户端：socket->connect->write||read->close;
 	服务端：socket->bind->listen->accept->read | write->close;
 	服务端的accept函数需早于客户端的connect函数
-	
+注意：
+	内核常用C语言知识 ：
+	\续行符		
+	##连接前后两个参数	
+		例#define SIGN(x) INT_##x 
+			int SIGN(1);//展开后为int INT_1;
+	#把一个符号转变为字符串
+		例#define STR(x) #x
+			char * str=STR(test_string);
+	内存对齐：
+		#pragma pack(n) //n=1,2,4,8,16
+出错信息获取：
+	（1）全局变量errno
+	（2）函数strerror(errno)，获取错误信息
+	（3）gai_strerror(error),//用于错误不存在错误码errno的情况
+	（4）getsockopt(int sockfd,int level,int optname,void * optval,socklen_t * optlen);//第三个参数为SO_ERROR时，获取错误码
 ------------------------服务器端TCP------------------------------------------------------------
 
 	socket(AF_INET,SOCK_STREAM,0);
