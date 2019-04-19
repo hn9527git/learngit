@@ -46,7 +46,7 @@ Git远程仓库：
 	可等到有网时一次推送
 	把本地master分支的最新修改推送至远程仓库
 克隆远程到本地库：
-	git clone git@github.com:hn9527/learngit.git
+	git clone https://github.com/hn9527git/learngit.git
 git clone和git pull：
 	git clone是将整个工程复制下来所以，不需要本地是仓库（没有.git文件夹）
 git fetch更新本地仓库的两种用法：
@@ -64,16 +64,16 @@ git fetch更新本地仓库的两种用法：
 		这样，既安全，又不影响别人工作。
 	1.创建新分支dev:git branch dev
 	2.切换到分支dev：git checkout dev   1+2:git checkout -b dev
-	3.查看分支：git branch  -- 在本分支上操作提交
+	3.查看分支：git branch  //在本分支上操作提交
 	4.切回分支master：git checkout master
-	5.合并分支：git merge dev      -- git merge 用于合并指定分支到当前分支
+	5.合并分支：git merge dev      //git merge 用于合并指定分支到当前分支
 	6.删除分支：git branch -d dev
 分支冲突：两个分支都修改了同一个地方
 	手动修改冲突并重新提交
 -------------------------------分支管理策略——————————————————————————》
 普通合并：合并分支时，如果可能GIT会使用Fast forward模式，但这种模式下，删除分支后，会丢掉分支信息，
 	如果要强制禁用Fast forward模式，Git就会在merge时生成一个新的commit。可以从分支历史上看出分支信息
-Bug分支：git stash 将当前工作现场储存起来，等以后恢复现场后继续工作 -- 可多次暂存
+Bug分支：git stash 将当前工作现场储存起来，等以后恢复现场后继续工作 //可多次暂存
 	切换到另一个分支处理Bug
 	合并分支
 	切换回原来分支，查看工作区是干净的，查看stash：git stash list

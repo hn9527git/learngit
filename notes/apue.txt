@@ -1,0 +1,142 @@
+fcntl函数：
+	int fcntl(int filedes,int cmd,...);//第三个参数总是一个整数
+	五种功能：
+	（1）复制一个现存的描述符（cmd=F_DUPFD）
+	（2）获得/设置文件描述符标志（cmd=F_GETFD或F_SETFD）
+		当前只定义了一个文件描述符标志FD_CLOSEEXEC //默认0，exec时不关闭，1关闭
+	（3）获得/设置文件状态标志（cmd=F_GETFL或F_SETFL）
+		O_RDONLY	O_WRONLY	O_RDWR只能选一个
+		O_APPEND|O_NONBLOCK|O_SYNC|O_ASYNC//可更改的就这四个
+	（4）获得/设置异步IO有权（cmd=F_GETOWN或F_SETOWN）
+		获取当前接收SIGIO和SIGURG信号的进程ID或进程组ID
+		设置接收SIGIO和SIGURG信号的进程ID或进程组ID，正的arg指定一个进程ID，负的arg表示等于arg绝对值的一个进程组ID。
+	（5）获得/设置记录锁（cmd=F_GETLK,F_SETLK或F_SETLKW）
+	返回值要与屏蔽字O_ACCMODE相与，然后与想要的值比较
+ioctl函数：
+int stat(const char *pathname,struct stat *buf);
+	//给定一个pathname，返回一个相关的信息结构体
+int fstat(int fd,struct stat *buf);
+	//获得已在文件描述符上打开的文件的相关信息
+int lstat(const char *pathname,struct stat *buf);
+	//类似stat函数，但当pathname是符号连接时，返回符号连接的信息
+struct stat
+{
+	dev_t     st_dev;         /* ID of device containing file */
+    ino_t     st_ino;         /* inode number */
+    mode_t    st_mode;        /* file type and mode */
+    nlink_t   st_nlink;       /* number of hard links */
+    uid_t     st_uid;         /* user ID of owner */
+    gid_t     st_gid;         /* group ID of owner */
+    dev_t     st_rdev;        /* device ID (if special file) */
+    off_t     st_size;        /* total size, in bytes */
+    blksize_t st_blksize;     /* blocksize for filesystem I/O */
+    blkcnt_t  st_blocks;
+}
+测试宏：
+	S_ISREG(stat.st_mode)	//是否为普通文件
+	S_ISDIR()				//目录文件
+	S_ISCHR()				//字符特殊文件
+	S_ISBLK()				//块特殊文件
+	S_ISFIFO()				//管道
+	S_ISLNK()				//符号连接
+	S_ISSOCK()				//套接字
+int access(const char *pathname,int mode);
+	测试：	mode			说明
+			R_OK		测试读
+			W_OK			写
+			X_OK			执行
+			F_OK			存在
+mode_t umask(mode_t mask);
+	//设置权限屏蔽位
+	（0666） S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH | S_IWOTH
+int chmod(const char *pathname,mode_t mode);
+	//设置指定路径文件的权限
+int fchmod(int fd,mode_t mode);
+	//设置已打开的文件的权限
+	mode 			说 明
+S_ISUID 	执行时设置-用户- I D
+S_ISGID 	执行时设置-组- I D
+S_ISVTX 	保存正文//粘住位，只有拥有文件者|目录者|root才可以删除，例/tmp
+S_IRWXU 	用户（所有者）读、写和执行
+S_IRUSR 	用户（所有者）读
+S_IWUSR 	用户（所有者）写
+S_IXUSR 	用户（所有者）执行
+S_IRWXG 	组读、写和执行
+S_IRGRP 	组读
+S_IWGRP 	组写
+S_IXGRP 	组执行
+S_IRWXO 	其他读、写和执行
+S_IROTH 	其他读
+S_IWOTH 	其他写
+S_IXOTH 	其他执行
+int chown(const char *path, uid_t owner, gid_t group);
+	//更改文件ID或组ID
+int fchown(int fd, uid_t owner, gid_t group);
+	//更改文件描述符打开的文件
+int lchown(const char *path, uid_t owner, gid_t group);
+	//更改链接文件本身
+int truncate(const char *path, off_t length);
+	//截断文件到length个字节
+int ftruncate(int fd, off_t length);
+	//截断文件描述符打开的文件到length个字节
+int link(const char *pathname,const char *newpath);
+	//新建一个目录项，引用指定文件（硬连接），不能是目录
+int unlink(const char *pathname);
+	//删除一个目录项
+int remove(const char *pathname);
+	//对于文件，与unlink相同
+	//对于目录，与rmdir相同
+int rename(const char *oldname,const char *newname);
+	(1) 如果o l d n a m e说明一个文件而不是目录，那么为该文件更名。在这种情况下，如果
+	n e w n a m e已存在，则它不能引用一个目录。如果 n e w n a m e已存在，而且不是一个目录，则先将
+	该目录项删除然后将o l d n a m e更名为n e w n a m e。对包含o l d n a m e的目录以及包含n e w n a m e的目录，
+	调用进程必须具有写许可权，因为将更改这两个目录。
+	(2) 如若o l d n a m e说明一个目录，那么为该目录更名。如果 n e w n a m e已存在，则它必须引用
+	一个目录，而且该目录应当是空目录（空目录指的是该目录中只有 . 和.. 项）。如果n e w n a m e存
+	在（而且是一个空目录），则先将其删除，然后将 o l d n a m e更名为n e w n a m e。另外，当为一个目
+	录更名时， n e w n a m e不能包含 o l d n a m e作为其路径前缀。例如，不能将 / u s r / f o o更名为
+	/ u s r / f o o / t e s t d i r，因为老名字（/ u s r / f o o）是新名字的路径前缀，因而不能将其删除。
+	(3) 作为一个特例，如果o l d n a m e和n e w n a m e引用同一文件，则函数不做任何更改而成功返
+	回。
+	如若n e w n a m e已经存在，则调用进程需要对其有写许可权（如同删除情况一样）。另外，
+	调用进程将删除o l d n a m e目录项，并可能要创建 n e w n a m e目录项，所以它需要对包含 o l d n a m e及
+	包含n e w n a m e的目录具有写和执行许可权。
+int symlink(const char *pathname,const chat *sympath);
+	//创建符号连接到指定文件（不要求pathname存在，也不要求同一文件系统）
+int readlink(const char *pathname,char *buf,int bufsize);
+	//读取符号连接本身，返回符号连接的内容到buf中，并且不以null结尾
+文件的时间：
+	atime：最后存取时间 			例：read		ls -u
+	mtime：最后修改时间 			例：write		默认显示
+	ctime：i节点状态最后修改时间	例：chmod chown ls -c
+int utime(const char *pathname,const struct utime *times);
+struct utime{
+	time_t atime;
+	time_t modtime;
+}
+	//修改文件的存取时间和最后修改时间
+int mkdir(const char *pathname,mode_t mode);
+	//创建一个空目录
+int rmdir(const char *pathname);
+	//如果此调用使目录的连接计数成为 0，并且也没有其他进程打开此目录，则释放由此目录占用
+	的空间。如果在连接计数达到 0时，有一个或几个进程打开了此目录，则在此函数返回前删除
+	最后一个连接及 . 和.. 项。另外，在此目录中不能再创建新文件。但是在最后一个进程关闭它
+	之前并不释放此目录（即使某些进程打开该目录，它们在此目录下，也不能执行其他操作，因
+	为为使r m d i r函数成功执行，该目录必须是空的）。
+void sync(void);
+int fsync(int fd) ;
+	//使修改过的块的缓存排入写队列就返回
+
+
+
+
+
+
+
+
+
+
+
+
+
+
