@@ -1,13 +1,72 @@
----------------------------进程-----------------------------------------------------
+---------------------------进程环境-----------------------------------------------------
 动态性
 并发性
 独立性
 异步性
+C程序的存储空间布局
+【1】正文段：CPU执行的机器指令，一般只读
+【2】初始化数据段：包含了程序中需要赋初值的变量
+【3】非初始化数据段：bss("block started by symbol"由符号开始的段)段，程序开始之前内核将其初始化为0
+【4】栈：自动变量以及每次函数调用时所需保存的信息都存在此段中。
+【5】堆：用于动态存储分配，位于非初始化数据段顶和栈底之间
+-----------------内存分配-------------------|
+内存高地址                                  |
+      ---------------命令行参数和环境变量   |
+栈：  ---------------向下生长               |
+堆：  ---------------向上生长               |
+未初始化的数据-------由内核exec赋初值0      |
+初始化的数据---------由内核exec从程序中读到 |
+正文：---------------由内核exec从程序中读到 |
+内存低地址                                  |
+--------------------------------------------|
+存储器分配：
+	（1）void *malloc(size_t size);
+		//分配指定字节数的存储区，初始值不确定
+	（2）void *calloc(size_t nobj,size_t size);
+		//为指定长度的对象，分配能容纳其指定个数的存储空间，每一位都初始化0
+	（3）void *realloc(void *ptr,size_t newsize);
+		//更改之前分配区的长度，新增（新增区域中的初始值不确定）或减少
+	释放:
+		void free(void *ptr);
+环境变量：
+	char *getenv(const char *name);
+		//返回一个指向name=value字符串中的value
+	int putenv(const char *str);
+		//取name=value字符串放到环境表中，若已存在，删除原来的定义
+	int setenv(const char *name,const char *value,int rewrite);
+		//同上，但若已存在1.rewrite非0，同上2.为0，不删除，返回不出错
+	void unsetenv(const char *name);
+		//删除指定的变量，不存在也不出错
+跳转功能函数
+	int setjmp(jmp_buf env);
+	void longjmp(jmp_buf env,int val);
+	先使用setjmp()函数，将所需的信息记入变量jmpbuffer中并返回0；
+	需要时调用longjmp()函数，使setjmp返回，但返回值为1；
+	定义自动变量为volatile，和说明为全局和静态变量的值在执行longjmp时保持不变
+资源限制：
+	int getrlimit(int resource,struct rlimit *rlim);
+	int setrlimit(int resource,const rlimit *rlim);
+	struct rlimit {
+		rlim_t rlim_cur;//软限制
+		rlim_t rlim_max;//硬限制
+		};
+	三条规则：
+	1.任何一个进程都可将软限制更改为小于或等于其硬限制
+	2.任何一个进程都可以降低其硬限制，但必须大于等于其软限制值，对于普通用户是不可逆的
+	3.只有超级用户可以提高硬限制
+-------------------------进程控制-----------------------------------------------------
+进程标识符：
+	pid_t getpid(void); 返回：调用进程的进程 ID
+	pid_t getppid(void); 返回：调用进程的父进程 ID
+	uid_t getuid(void); 返回：调用进程的实际用户 ID
+	uid_t geteuid(void); 返回：调用进程的有效用户 ID
+	gid_t getgid(void); 返回：调用进程的实际组 ID
+	gid_t getegid(void); 返回：调用进程的有效组 ID
 进程控制块：task_struct 数据结构来表示
 Linux支持两种进程：实时进程和普通进程
 fork()函数	vfork()函数
-	前者要拷贝父进程的数据段，后者不完全拷贝，在子进程没有调用exec或exit之前，与父进程共享数据段
-	后者自动调用exec
+	前者要拷贝父进程的数据段，后者不完全拷贝，在子进程没有调用exec或exit之前，与父进程只读共享数据段
+	后者自动调用exec，子进程在父进程的地址空间中运行
 	后者限定子进程先运行，父进程挂起直到子进程调用了exec或exit后，父子进程才没有执行次序的限制
 exec()系列函数
 int execl(const char *path,const char * arg,...);
@@ -48,8 +107,10 @@ setsid()函数：
 	调用abort函数
 	接到一个信号并且终止
 	最后一个线程对取消请求作了响应
-	
-	atexit(function_name)：登记终止处理函数
+登记终止处理函数
+	int atexit(void *function_name(void));//成功返回0，失败返回非0
+		//由exit自动调用
+		//相当于将函数入栈，exit时按相反的顺序调用，不需要参数，也不期望它返回一个值
 销毁进程：
 	子进程终止时将产生SIGCHLD信号，可以利用各种信号函数完成消灭僵尸进程
 		用sigaction函数注册该信号，在注册函数中调用waitpid函数即可

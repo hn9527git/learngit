@@ -131,3 +131,7 @@ QT连接MySQL:
 	出现错误：QSqlDatabase: QMYSQL driver not loaded QSqlDatabase: available drivers: QSQLITE QMYSQL QMYSQL3 QODBC7
 	解决办法：
 		将mysql/lib/libmysql.dll复制到c：/windows中;
+Linux下Qt
+	出错：没有找到pthread.h中的线程函数
+	解决办法：
+		再pro文件中加上LIBS +=-lpthread （即gcc编译时加上的-lpthread）

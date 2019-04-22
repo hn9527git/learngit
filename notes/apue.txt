@@ -126,7 +126,152 @@ int rmdir(const char *pathname);
 void sync(void);
 int fsync(int fd) ;
 	//使修改过的块的缓存排入写队列就返回
-
+-----------------------标准I/O库---------------------------------------------------
+标准I/O库的操作是基于流的
+标准I/O提供缓存的目的是尽可能减少使用read和write系统调用的数量。
+三种缓存类型：
+	全缓存：当填满缓存区后才进行实际的I/O操作。
+	行缓存：当输入和输出中遇到新行符，执行I/O操作
+	不带缓存：相当于直接调用系统read和write
+系统默认全缓存，但如果流引用终端设备，则该流是行缓存的。也可以自定义。
+void setbuf(FILE *fp,char * buf);
+int setvbuf(FILE *fp,char *buf,int mode,size_t size);
+	//自定义缓存
+int fflush(FILE *fp);
+	//强制刷新流
+打开流：
+	FILE *fopen(const char *pathname,const char *type);
+		打开路径名指定的一个文件
+	FILE *freopen(const char *pathname,const char *type,FILE *fp);
+		在一个特定的流上打开一个指定的文件
+	FILE *fdopen(int *fd,const char *type);
+		使一个现存的文件描述符与标准I/O流相结合
+关闭流：
+	int fclose(FILE *fp);
+当一个进程正常终止时，则所有带未写缓存数据的标准I/O流都被刷新，所有打开的标准I/O流都被关闭。
+读写流：
+	（1）每次一个
+	输入函数：
+			int getc(FILE *fp);//可以是一个宏
+			int fgetc(FILE *fp);//函数，调用时间一般长于宏
+			int getchar(void);//默认从标准输入流stdin读数据
+		出错或文件末尾返回同样的值，可以用下列函数区分
+			int ferror(FILE *fp);//条件为真返回非0，否则为0
+			int feof(FILE *fp);//条件为真返回非0，否则为0
+			void clearerr(FILE *fp);//清除错误标志
+		从一个流读之后，可以将字符再送回流中
+			int ungetc(int c,FILE *fp);//成功返回C，失败为EOF
+	输出函数：
+			int putc(int c,FILE *fp);
+			int fputc(int c,FILE *fp);
+			int putchar(int c);//同上
+	（2）每次一行
+	输入：
+		char *fgets(char *buf,int n,FILE *fp);
+		char *gets(char *buf);//从标准输入读，可能缓存越界，勿用
+	输出：
+		int fputs(const char *str,FILE *fp);
+		int puts(const char *str);默认在最后写一个新行符，即换行
+	推荐使用fgets和fputs函数，记得加换行符，但有NULL字符或换行符则不能正常工作
+	读写二进制数组：
+		size_t fread(void *ptr,size_t size,size_t nobj,FILE *fp);
+		size_t fwrite(const void *ptr,size_t size,size_t nobj,FILE *fp);
+	（3）直接I/O
+定位流：
+	（1）ftell和fseek
+		long ftell(FILE *fp);//成功返回当前位置指示，出错返回-1
+		int fseek(FILE *fp,long offset,int whence);//成功返回0
+			--offset:偏移量
+			--whence:(1)SEEK_SET开始(2)SEEK_CUR当前(3)SEEK_END末尾
+		void rewind(FILE *fp);//将流设置到文件的起始位置
+	（2）fgetpos和fsetpos//需要移植到非UNIX系统上应当使用
+		int fgetpos(FILE *fp,fpos_t *pos);//成功返0
+			//将文件指示器的当前值存在pos指向的对象中
+		int gsetpos(FILE *fp,const fpos_t *pos);//成功返0
+			//将流重新定位至pos指定的位置
+格式化I/O
+	格式化输出：
+	（1）int printf(const char *format,...);//成功返回输出字符数
+		//将格式化数据写到标准输出
+	（2）int fprintf(FILE *fp,const cahr format,...);//成功返回输出字符数
+		//将格式化数据写到指定的流
+	（3）int sprintf(char *buf,const char *format,...);//返回存入数组的字符数
+		//将格式化数据写到数组buf中，并在尾端自动加一个null字节，但该字节不包含在返回值中
+	格式化输入：
+	（1）int scanf(const char *format,...);
+	（2）int fscanf(FILE *fp,const char *format,...);
+	（3）int sscanf(const char *buf,const char *format,...);
+每个I/O流都有一个与其相关联的文件描述符，可以调用fileno获得
+	int fileno(FILE *fp);//成功返回文件描述符
+--------------------系统数据文件和信息--------------------------------------------
+存取口令文件中信息的函数：
+	（1）struct passwd *getpwuid(uid_t uid);//ls使用
+	（2）struct passwd *getpwnam(const char *name);//login使用
+查看整个口令文件：
+	（2）struct passwd *getpwent(void);//返回一个由它填写好的passwd结构指针
+	（1）void setpwent(void);首先反绕它所使用的文件
+	（3）void endpwent(void);关闭这些文件
+阴影口令文件：至少包含用户名和加密口令
+查看组名或数值组ID
+	struct group *getgrgid(gid_t gid);
+	struct group *getgrnam(const char *name);
+搜索整个组文件：
+	（1）void setgrent(void);//打开组文件并反绕它
+	（2）struct group *getgrent(void);//读取下一个记录
+	（3）void endgrent(void);//关闭组文件
+添加组ID：
+	int getgroups(int size,gid_t list[]);//返回添加的组ID数，失败返回-1
+		//将进程所属用户的各添加组ID填写到组grouplist中，最多为size个
+	int setgroups(size_t size,const gid_t *list);//返回0，失败返回-1
+		//一般由超级用户调用为进程设置添加组ID表，size为个数
+	int initgroups(const char *username,gid_t basegid);//返回0，失败返回-1
+		//超级用户调用读取整个组文件(方法见上)，然后调用setgroups函数
+系统标识：
+	int uname(struct utsname *buf);
+	struct utsname {
+        char sysname[];    /* Operating system name (e.g., "Linux") */
+        char nodename[];   /* Name within "some implementation-definednetwork" */
+        char release[];    /* Operating system release (e.g., "2.6.28") */
+        char version[];    /* Operating system version */
+        char machine[];    /* Hardware identifier */
+        #ifdef _GNU_SOURCE
+        char domainname[]; /* NIS or YP domain name */
+        #endif
+        };
+当前时间和日期：
+	time_t time(time_t *calptr);//返回时间值，失败返回-1
+						内核
+					  （time）
+					time_t（日历时间）
+	gmtime()	localtime()		mktime(反向) 	ctime()
+		 struct tm(年月日时分秒结构体)				|
+	strftime()					asctime()			|	
+	格式化字符串					|_______________|
+											字符串
+struct tm {
+               int tm_sec;         /* seconds */
+               int tm_min;         /* minutes */
+               int tm_hour;        /* hours */
+               int tm_mday;        /* day of the month */
+               int tm_mon;         /* month */
+               int tm_year;        /* year */
+               int tm_wday;        /* day of the week */
+               int tm_yday;        /* day in the year */
+               int tm_isdst;       /* daylight saving time */
+           };
+	struct tm *gmtime(const time_t *timeptr);
+		//将日历时间变换成国际标准时间的年月日时分秒
+	struct tm *localtime(const time_t *timeptr);
+		//将日历时间变换为本地时间
+	time_t mktime(struct time_t *timeptr);
+		//将参数转换为time_t值
+	char *asctime(const struct tm *timeptr);
+		//返回null结尾的字符串
+	char *ctime(const time_t *timeptr);
+		//返回null结尾的字符串
+	size_t strftime(char *buf,size_t maxsize,const char *format,const struct tm *timeptr);
+---------------------UNIX进程的环境------------------------------------------------
+进程终止	
 
 
 
