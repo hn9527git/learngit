@@ -1,0 +1,13 @@
+<RCC>
+    <qresource prefix="/bsimg">
+        <file>leiji.png</file>
+        <file>shunshi.png</file>
+        <file>wendu.png</file>
+        <file>yali.png</file>
+        <file>jilu.png</file>
+        <file>weilianjie.png</file>
+        <file>error.png</file>
+        <file>ok.png</file>
+        <file>yilianjie.png</file>
+    </qresource>
+</RCC>
