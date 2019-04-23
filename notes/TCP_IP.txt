@@ -386,12 +386,16 @@ Nagle算法：
 	何时销毁：
 		应该向创建子进程的父进程传递子进程的exit参数或return返回值。
 	销毁函数：
-		1 pid_t wait(int * statloc);//返回终止的子进程ID，失败返回-1
+		1 pid_t wait(int * status);//返回终止的子进程ID，失败返回-1
 			-- 阻塞等待子进程终止
 			调用此函数时如果已有子进程终止，那么终止时传递返回值将保存到该函数的参数所指
 			内存空间。但信息较多，需要用宏进行分离。
-			WIFEXITED：子进程正常终止时返回真
-			WEXITSTATUS:返回子进程的返回值
+			WIFEXITED(status)：子进程正常终止时返回真
+				再用WEXITSTATUS(status):返回子进程的返回值
+			WIFSIGNALED(status):子进程异常终止为真
+				再用WTERMSIG(status):取得使子进程终止的信号编号（不能得到名字）
+			WIFSTOPPED(status):子进程暂停为真
+				再用WSTOPSIG(status)：取得使子进程暂停的信号编号
 		例如：
 			if(WIFEXITED(status))
 			{
@@ -399,9 +403,21 @@ Nagle算法：
 			}
 		2 pid_t waitpid(pid_t pid,int * statloc,int options);//返回终止子进程ID或0，失败返回-1
 			-- pid:等待终止的目标子进程的ID，若传递-1，则等同于wait函数（等待任意子进程）
+			-- pid>0:等待id=pid的子进程
+			-- pid==0:等待组id=调用进程的组ID的任一子进程
+			-- pid<-1:等待其组ID=pid的绝对值的任一子进程
 			-- statloc:接受信息
 			-- options:传递头文件中的声明的常量WNOHANG，即使pid子进程没有结束也不会进入阻塞，返0退出
+						WUNTRACED：支持作业控制
 			-- 默认阻塞等待信号的到来或子进程结束
+wait3和wait4函数：
+	pid_t wait3(int status,int options,struct rusage *rusage);
+		-- wait()函数进阶版，返回资源信息结构体
+			包括用户CPU时间总量、系统CPU时间总量、缺页次数、接收到信号次数等
+	pid_t wait4(pid_t pid,int status,int options,struct rusage *rusage);
+		-- waitpid()函数进阶版，返回资源信息结构体
+竞态条件：
+	当多个进程都企图对共享数据进行某种处理，而最后的结果又取决于进程运行的顺序时。
 信号处理：
 	父进程往往与子进程一样繁忙，因此不能之调用waitpid函数以等待子进程终止，所以向操作系统求助
 		由操作系统告诉父进程子进程的终止，此时父进程暂时放下工作去处理子进程终止相关事宜。

@@ -74,10 +74,28 @@ int execl(const char *path,const char * arg,...);
 	要求全路径，最后一个参数必须用空指针NULL结束
 int execlp(const char *file,const char *arg,...);
 	例:execlp("pwd","",NULL);
-	从PATH环境变量所指的目录中查找参数file的文件名，找到后执行，后边为参数，NULL结尾
+	如果filename包含/，则将其视为路径名，否则从PATH环境变量所指的目录中查找参数file的文件名，找到后执行，后边为参数，NULL结尾
+更改用户ID和组ID
+	int setuid(uid_t uid);
+	int setgid(gid_t gid);
+	1.若进程具有超级用户特权，则setuid函数将实际用户ID、有效用户ID、以及保存的设置用户ID设置为uid
+	2.若进程没有超级用户特权，但是uid等于实际用户ID或保存得设置用户ID，以及保存的设置用户ID为uid，则setuid只将有效用户设置为uid
+	3.若以上条件都不满足，则errno设置为EPERM,并返回错误
+交换实际用户ID和有效用户ID的值
+	int setreuid(uid_t ruid,uid_t euid);
+	int setregid(git_t rgid,gid_t egid);
+	一个非特权用户总能交换实际用户ID和有效用户ID
+更改有效用户ID和有效组ID
+	int seteuid(uid_t uid);
+	int setegid(git_t gid);
+	一个非特权用户可将其有效用户ID设置为其实际用户ID或其保存的设置用户ID。
+	对于一个特权用户则可将有效用户ID设置为uid。
 system函数也可以创建进程
 	int system(const char * cmdstring)；
 	该函数执行过程：1.fork()2.子进程中调用exec执行cmdstring3.父进程等待子进程返回结束。
+僵死进程：
+	一个已终止，但是其父进程尚未对其进行善后处理的进程。
+	若父进程先于子进程死掉，那么子进程由init进程领养，若子进程终止，则init自动调用一个wait函数取得其终止状态
 守护进程：
 	独立启动守护进程：一直占据内存，响应快
 	超级守护进程：由统一的守护进程来管理，需要唤醒，多了一层管理机制
