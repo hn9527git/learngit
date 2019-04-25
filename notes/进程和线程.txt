@@ -93,6 +93,21 @@ int execlp(const char *file,const char *arg,...);
 system函数也可以创建进程
 	int system(const char * cmdstring)；
 	该函数执行过程：1.fork()2.子进程中调用exec执行cmdstring3.父进程等待子进程返回结束。
+	如果一个进程正以特殊的许可权 (设置-用户-I D或设置-组-I D )运行，它又想生成另一个进
+		程执行另一个程序，则它应当直接使用 f o r k和e x e c，而且在f o r k之后、 e x e c之前要改回到普通许可权。
+	设置用户ID或设置组ID程序决不能调用system函数
+获得用户登录名：
+	char *getlogin(void);
+		//返回指向登录名字符串的指针，出错返回NULL
+进程时间：
+	clock_t times(struct tms *buf);
+		//返回经过的墙上时钟时间，出错返回-1
+	struct tms{
+		clock_t tms_utime;//user cpu time
+		clock_t tms_stime;//system cpu time
+		clock_t tms_cutime;//user cpu time,terminated children
+		clock_t tms_cstime;//system cpu time,terminated children
+		};//两个针对子进程的字段包含了此进程已等待到的各个子进程的值
 僵死进程：
 	一个已终止，但是其父进程尚未对其进行善后处理的进程。
 	若父进程先于子进程死掉，那么子进程由init进程领养，若子进程终止，则init自动调用一个wait函数取得其终止状态
@@ -101,11 +116,19 @@ system函数也可以创建进程
 	超级守护进程：由统一的守护进程来管理，需要唤醒，多了一层管理机制
 进程组：
 	一或多个进程的集合，进程组ID和组长进程ID一样，且组长进程退出，进程组ID不变存在
+	pid_t getpgrp(void);//获得该进程的进程组id
+	进程组的生命期：
+		从进程组创建开始到其中最后一个进程离开为止的时间区间称为进程组的生命期
+	int setpgid(pid_t pid,pid_t pgid);
+		//将pid进程的进程组ID设置为pgid，如果两个参数相等，则pid指定的进程变成进程组组长
+		如果pid是0，则使用调用者的进程ID。如果pgid为0，则由pid指定的进程ID被用作为进程组ID
 会话周期：
 	一或多个进程组的集合，开始于用户登录，终止于用户退出，期间该用户所运行的所有进程都属于这个会话周期
-setsid()函数：
-	创建新会话，并担任该会话组组长
+	pid_t setsid(void);
+		//创建新会话，此进程变成该新会话期的对话其首进程，并担任该会话组组长,无控制终端或有但解除
+		//若调用进程已经是一个进程组的组长，则此函数返回错误
 	作用：1。让进程摆脱原进程的控制 2.摆脱原进程组的控制 3.摆脱原控制终端的控制
+	注：无论何时键入中断键或退出键，就会造成将中断信号或退出信号送至前台进程组的所有进程
 编写守护进程：
 	1.创建子进程，父进程退出。子进程成为孤儿进程，由1号进程收养
 	2.在子进程中创建新对话。setsid()函数
@@ -152,10 +175,14 @@ setsid()函数：
 	前32个Linux内核支持，不可靠
 	后32个后来扩充的，可靠
 	区别：不可靠信号不支持排队
+子进程继承父进程的信号处理方式。
+exec后的新进程的信号由系统默认处理或重新设置处理方式，原来继承的信号处理方式无效
 注册信号函数：
 	signal();
 		void (*signal(int signo,void(*handler)(int)))(int);
-		sigkill和sigstop不能设置信号处理函数
+		//sigkill和sigstop不能设置信号处理函数
+		//第二个参数：1.SIG_IGN:向内核表示忽略此信号
+			2.SIG_DFL：系统默认动作
 	sigaction函数
 		int sigaction(int signo,const struct sigaction * act,struct sigaction * oldact);
 		-- //UNIX操作系统中完全相同
