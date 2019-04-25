@@ -8,15 +8,18 @@ chuankou::chuankou(QWidget *parent) :
 {
     ui->setupUi(this);
     ui->comboBox_2->setCurrentIndex(3);
+    ui->pushButton_send->setEnabled(false);//串口未打开，不能发送数据，否则程序异常终止
+    //在PC上搜索可用串口，并添加名字到ui界面上
     foreach(const QSerialPortInfo &info,QSerialPortInfo::availablePorts())
     {
-        QSerialPort serial;
-        serial.setPort(info);
-        if(serial.open(QIODevice::ReadWrite))
-        {
-            ui->comboBox->addItem(serial.portName());
-            serial.close();
-        }
+//        QSerialPort serial;
+//        serial.setPort(info);
+//        if(serial.open(QIODevice::ReadWrite))
+//        {
+//            ui->comboBox->addItem(serial.portName());
+//            serial.close();
+//        }
+        ui->comboBox->addItem(info.portName());
     }
 }
 
@@ -31,10 +34,7 @@ void chuankou::ReadDate()
     buf=serial->readAll();
     if(!buf.isEmpty())
     {
-        QString str=ui->textEdit->toPlainText();
-        str+=buf;
-        ui->textEdit->clear();
-        ui->textEdit->append(str);
+        ui->textEdit->append(buf);
     }
     buf.clear();
 }
@@ -124,6 +124,8 @@ void chuankou::on_pushButton_ck_clicked()
 
         //连接信号槽
         connect(serial,SIGNAL(readyRead()),this,SLOT(ReadDate()));
+        //串口发送数据按钮使能
+        ui->pushButton_send->setEnabled(true);
     }
     else
     {
@@ -131,6 +133,7 @@ void chuankou::on_pushButton_ck_clicked()
         serial->clear();
         serial->close();
         serial->deleteLater();
+        ui->pushButton_send->setEnabled(false);//关闭发送按钮使能
 
         //恢复设置使能
         ui->comboBox->setEnabled(true);
@@ -147,7 +150,6 @@ void chuankou::on_pushButton_send_clicked()
 {
     serial->write(ui->textEdit_2->toPlainText().toLatin1());
 }
-
 void chuankou::on_pushButton_clear_clicked()
 {
     ui->textEdit->clear();

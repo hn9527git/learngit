@@ -13,8 +13,6 @@
 #include <QDateTime>
 #include <set.h>
 
-//int NOTICE=0;//只显示一次数据库连接提示
-
 namespace Ui {
 class MyMainWindow;
 }
@@ -32,40 +30,39 @@ protected:
     void paintEvent(QPaintEvent *);//绘图事件
     void drawCrown(QPainter *painter);//绘制表盘
     void drawBackground(QPainter *painter);//绘制背景
-    void drawScale(QPainter *painter);
-    void drawScaleNum(QPainter *painter);
-    void drawTitle(QPainter *painter);
-    void drawIndicator(QPainter *painter);
-    void drawNumericValue(QPainter *painter);
-    //3.10
-    void drawLine(QPainter *painter);
+    void drawScale(QPainter *painter);//绘制刻度线
+    void drawScaleNum(QPainter *painter);//绘制刻度值
+    void drawTitle(QPainter *painter);//绘制单位
+    void drawIndicator(QPainter *painter);//绘制表针
+    void drawNumericValue(QPainter *painter);//画数字显示
+    void drawLine(QPainter *painter);//绘线
 
 private slots:
-    void on_action_triggered();
+    void on_action_triggered();//显示串口界面
     void timeUpdate();
 
-    void on_action_2_triggered();
+    void on_action_2_triggered();//查看数据界面
 
-    void on_actionMySQL_triggered();
+    void on_actionMySQL_triggered();//连接数据库界面
 
     void dataUpdate();//自定义的槽函数插入数据
     void on_pushButton_open_clicked();
 
-    void data_read_fenxi();
+    void data_read_fenxi();//数据读取分析
 
     void on_pushButton_close_clicked();
 
-    void on_horizontalSlider_actionTriggered(int action);
+    void on_horizontalSlider_actionTriggered(int action);//调节器数据变化发送槽函数
 
     void update_ui_lx();//更新类型标签
     void update_zhen();//更新流量计指针值
     void mysql_status();//更新数据库连接状态
     void update_leiji();//更改累积流量值
 
-    void on_action_Qt_triggered();
+    void on_action_Qt_triggered();//显示关于Qt界面
 
-    void on_action_3_triggered();
-    void set_range();
+    void on_action_3_triggered();//设置流量范围界面
+    void set_range();//设置正常流量范围槽函数
 
     void set_tab_name();//设置数据表名
 
@@ -77,6 +74,7 @@ signals:
 
 private:
     Ui::MyMainWindow *ui;
+
     chuankou * ck;//串口类
     QTimer *timer;//状态栏时间触发器
     QTimer *m_dataTimer;//存储数据时间触发器
@@ -94,10 +92,10 @@ private:
     int m_scaleMinor;
     double m_value;
     int m_precision;
-    QTimer *m_updateTimer;//暂用流量计时间触发器，后期使用数据触发
+    //QTimer *m_updateTimer;//暂用流量计时间触发器，后期使用数据触发
     QString m_units;
     QString m_title;
-    //static int notice;
+
     //定义设备相关属性
     int leixing;//类型
     QString leixing_str;//字符串类型
@@ -112,11 +110,11 @@ private:
     int status_db;//记录数据状态
     int run_low;//正常状态最低值
     int run_high;//正常状态最高值
-    set * set_ptr;//设置类
-    QString tab;
+    set * set_ptr;//设置类指针
+    QString tab;//数据表名称
 
 public Q_SLOTS:
-    void UpdateAngle();
+    //void UpdateAngle();
 };
 
 #endif // MYMAINWINDOW_H

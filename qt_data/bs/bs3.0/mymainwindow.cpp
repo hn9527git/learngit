@@ -32,38 +32,45 @@ MyMainWindow::MyMainWindow(QWidget *parent) :
     m_precision = 0;
     m_value = 0;
 
-    m_updateTimer = new QTimer(this);
-    m_updateTimer->setInterval(500);//间隔，微秒单位
-    connect(m_updateTimer, SIGNAL(timeout()), this, SLOT(UpdateAngle()));
-    //m_updateTimer->start();//启动定时器-------------------------------------暂时关闭，设计串口。
+    //m_updateTimer = new QTimer(this);
+    //m_updateTimer->setInterval(500);//间隔，微秒单位
+    //connect(m_updateTimer, SIGNAL(timeout()), this, SLOT(UpdateAngle()));
 
     //    setWindowFlags(Qt::FramelessWindowHint);//无窗体
     //    setAttribute(Qt::WA_TranslucentBackground);//背景透明
-    // resize(400, 400);
-    this->m_dataTimer = new QTimer;
-    ///this->m_dataTimer->setInterval(1000);
-    connect(this->m_dataTimer,SIGNAL(timeout()) ,this,SLOT(dataUpdate()));//每五秒钟采集一次数据
-    //this->m_dataTimer->start(5000);
 
-    this->ck=new chuankou();//构建串口类
+    //构建数据采集定时器
+    this->m_dataTimer = new QTimer;
+    //采集数据定时器槽函数连接
+    connect(this->m_dataTimer,SIGNAL(timeout()) ,this,SLOT(dataUpdate()));
+
+    //构建串口类
+    this->ck=new chuankou();
 
     connect(this,SIGNAL(update_leixing()),this,SLOT(update_ui_lx()));
     connect(this,SIGNAL(update_zhen_xh()),this,SLOT(update_zhen()));
     connect(this,SIGNAL(update_zhen_xh()),this,SLOT(update_leiji()));
 
-    //this->cmysql=new CONN_Dialog();//构建数据库连接界面类
+    //数据库连接界面类（单例，为了获得其状态）
     this->cmysql=CONN_Dialog::get_conn_dialog();
-    connect(this->cmysql,SIGNAL(conn_ok()),this,SLOT(mysql_status()));//数据库连接状态设置
+
+    //数据库连接类连接成功发出conn_ok信号，通过槽函数修改数据库连接状态
+    connect(this->cmysql,SIGNAL(conn_ok()),this,SLOT(mysql_status()));
+
     //设备状态
     this->status=0;//未连接
-    this->status_db=0;
-    this->run_low=0;//初始化瞬时流量正常范围
+    this->status_db=0;//未记录数据状态
+    //初始化瞬时流量正常范围
+    this->run_low=0;
     this->run_high=100;
-    this->set_ptr=new set();
+
+    this->set_ptr=new set();//构建设置类
+
+    //界面设置范围发出range_changed信号，通过槽函数修改范围
     connect(this->set_ptr,SIGNAL(range_changed()),this,SLOT(set_range()));
 
-    connect(this->cmysql,SIGNAL(tab_name_set()),this,SLOT(set_tab_name()));//设置数据表名
-
+    //数据库连接类的数据表名发生变化发出tab_name_set信号，通过槽函数修改数据表名
+    connect(this->cmysql,SIGNAL(tab_name_set()),this,SLOT(set_tab_name()));
 }
 
 MyMainWindow::~MyMainWindow()
@@ -71,7 +78,7 @@ MyMainWindow::~MyMainWindow()
     delete ui;
 }
 
-double MyMainWindow::two_to_ten(QString str,int n)
+double MyMainWindow::two_to_ten(QString str,int n)//二进制转换为十进制
 {
     qDebug()<<"two_to_ten";
     bool ret;
@@ -138,18 +145,18 @@ void MyMainWindow::paintEvent(QPaintEvent *)
     //    painter.setPen(Qt::NoPen);
     //    painter.setBrush(Qt::white);
     //    painter.drawRect(rect());
-    painter.setRenderHint(QPainter::Antialiasing);  /* 使用反锯齿(如果可用) */
-    //painter.translate(width() / 2, height() / 2);   /* 坐标变换为窗体中心 */
+    painter.setRenderHint(QPainter::Antialiasing);  // 使用反锯齿(如果可用)
+    //painter.translate(width() / 2, height() / 2);   // 坐标变换为窗体中心
     painter.translate(210,230);//更改位置
     //int side = qMin(width(), height());
-    //painter.scale(side / 200.0, side / 200.0);      /* 比例缩放 */
+    //painter.scale(side / 200.0, side / 200.0);      // 比例缩放
 
-    drawCrown(&painter);                                 /* 画表盘边框 */
-    drawScaleNum(&painter);                          /* 画刻度数值值 */
-    drawScale(&painter);                                 /* 画刻度线 */
-    drawTitle(&painter);                                     /* 画单位 */
-    drawNumericValue(&painter);                      /* 画数字显示 */
-    drawIndicator(&painter);                             /* 画表针 */
+    drawCrown(&painter);                                 // 画表盘边框
+    drawScaleNum(&painter);                          // 画刻度数值值
+    drawScale(&painter);                                 // 画刻度线
+    drawTitle(&painter);                                     //画单位
+    drawNumericValue(&painter);                      // 画数字显示
+    drawIndicator(&painter);                             // 画表针
     //3.10 add
     //3.26 delete
 
@@ -325,19 +332,19 @@ void MyMainWindow::drawLine(QPainter *painter)
     painter->drawLine(213,540,213,720);
     //painter->drawLine(230,350,588,350);
 }
-void MyMainWindow::UpdateAngle()
-{
-    //emit this->data_update();//只要角度改变则发送自定义的数据更新信号
-    if(m_value<100)
-    {
-        this->m_value+=1;
-    }
-    else
-    {
-        m_value=0;
-    }
-    this->update();
-}
+//void MyMainWindow::UpdateAngle()
+//{
+//    //emit this->data_update();//只要角度改变则发送自定义的数据更新信号
+//    if(m_value<100)
+//    {
+//        this->m_value+=1;
+//    }
+//    else
+//    {
+//        m_value=0;
+//    }
+//    this->update();//重绘界面
+//}
 void MyMainWindow::on_action_triggered()
 {
     //chuankou ck;
@@ -415,7 +422,7 @@ void MyMainWindow::on_pushButton_open_clicked()
     QString timeStr=start_time.toString("yyyy\xe5\xb9\xb4-MM\xe6\x9c\x88-dd\xe6\x97\xa5 hh:mm:ss");//年月日
     this->ui->label_start_time->setText(timeStr);
 
-    this->m_dataTimer->start(5000);//打开流量计时，打开采集数据的定时器
+    this->m_dataTimer->start(5000);//打开流量计时，打开采集数据的定时器，设置间隔为5秒
     this->ui->pushButton_open->setEnabled(false);
     //  设置串口
     ck->serial = new QSerialPort;
@@ -514,7 +521,7 @@ void MyMainWindow::on_pushButton_close_clicked()
     this->update();
 }
 
-void MyMainWindow::on_horizontalSlider_actionTriggered(int action)
+void MyMainWindow::on_horizontalSlider_actionTriggered(int)
 {
 
     int nDec=this->ui->horizontalSlider->value();

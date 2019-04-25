@@ -23,7 +23,7 @@ conn_mysql_dialog::conn_mysql_dialog(QWidget *parent) :
     this->stand_model->setHorizontalHeaderItem(4,new QStandardItem("压力"));
     this->stand_model->setHorizontalHeaderItem(5,new QStandardItem("记录时间"));
 
-    this->p_conn_dialog=CONN_Dialog::get_conn_dialog();
+    this->p_conn_dialog=CONN_Dialog::get_conn_dialog();//获取数据库连接类(单例)指针
 
 }
 
@@ -32,32 +32,8 @@ conn_mysql_dialog::~conn_mysql_dialog()
     delete ui;
 }
 
-void conn_mysql_dialog::on_pushButton_clicked()
+void conn_mysql_dialog::on_pushButton_clicked()//查看所有数据
 {
-    //使用select语句查询，后边在设计ui，暂不用--加一个textEdit_v
-//    query=new QSqlQuery();
-//    query->exec("SELECT * FROM DATA1");
-//    if(!query->isActive())
-//    {
-//        QMessageBox::warning(this,"\xe6\x9f\xa5\xe8\xaf\xa2\xe9\x94\x99\xe8\xaf\xaf\xef\xbc\x81",
-//                             query->lastError().text(),"确定");
-//    }
-//    while(query->next())
-//    {
-//        QString id = query->value(0).toString();
-//        QString speed=query->value(1).toString();
-//        //QString buf=this->ui->textEdit_v->toPlainText();
-//        QString buf=this->ui->textEdit_v->toPlainText()+id+" "+speed+"\n";
-//        if(buf=="")
-//        {
-//            this->ui->textEdit_v->setPlainText("no data!");
-//        }
-//        else
-//        {
-//            //speed=buf+'\n'+speed;
-//            this->ui->textEdit_v->setPlainText(buf);
-//        }
-//    }
     //tableview显示数据
     this->p_conn_dialog=CONN_Dialog::get_conn_dialog();
     this->tab_name=this->p_conn_dialog->get_tab_name();
@@ -72,12 +48,15 @@ void conn_mysql_dialog::on_pushButton_clicked()
     }
 
     model->setHeaderData(0,Qt::Horizontal,"记录ID");//设置字段别名
-    model->setHeaderData(1,Qt::Horizontal,"瞬时速度(m³/h)");
-    model->setHeaderData(2,Qt::Horizontal,"记录时间");
+    model->setHeaderData(1,Qt::Horizontal,"\xe6\xb5\x81\xe9\x87\x8f\xe8\xae\xa1\xe4\xbf\xa1\xe6\x81\xaf");//流量计信息
+    model->setHeaderData(2,Qt::Horizontal,"瞬时速度(m³/h)");
+    model->setHeaderData(3,Qt::Horizontal,"温度(摄氏度))");
+    model->setHeaderData(4,Qt::Horizontal,"压力(Pa)");
+    model->setHeaderData(5,Qt::Horizontal,"记录时间");
 
 }
 
-void conn_mysql_dialog::on_pushButton_2_clicked()
+void conn_mysql_dialog::on_pushButton_2_clicked()//取消查询，关闭界面
 {
     this->close();
 }

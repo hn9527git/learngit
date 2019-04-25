@@ -1,6 +1,6 @@
 #ifndef CONN_DIALOG_H
 #define CONN_DIALOG_H
-
+//数据库连接类
 #include <QDialog>
 #include <QString>
 #include <QSqlQuery>
@@ -21,9 +21,9 @@ public:
     ~CONN_Dialog();
     QString get_tab_name();
 private slots:
-    void on_pushButton_test_clicked();
+    void on_pushButton_test_clicked();//数据库连接测试槽函数
 
-    void on_pushButton_cancle_clicked();
+    void on_pushButton_cancle_clicked();//取消连接
 
 signals:
     void conn_ok();//数据库连接成功信号

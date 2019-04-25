@@ -49,6 +49,7 @@ void CONN_Dialog::on_pushButton_test_clicked()
     this->database=this->ui->lineEdit_db->text();
     this->user=this->ui->lineEdit_user->displayText();
     this->passwd=this->ui->lineEdit_passwd->text();
+    //数据库配置连接
     db=QSqlDatabase::addDatabase("QMYSQL");
     db.setHostName(this->hostname);
     db.setPort(this->port);
@@ -64,8 +65,8 @@ void CONN_Dialog::on_pushButton_test_clicked()
     }
     else
     {
-        this->query=new QSqlQuery();
-        emit tab_name_set();
+        this->query=new QSqlQuery();//连接成功，new一个查询类存到指针中
+        emit tab_name_set();//发送数据表名设置信号
         QMessageBox::information(0,"\xe6\x95\xb0\xe6\x8d\xae\xe5\xba\x93\xe8\xbf\x9e\xe6\x8e\xa5\xe6\x8f\x90\xe7\xa4\xba",
                                  "\xe8\xbf\x9e\xe6\x8e\xa5\xe6\x95\xb0\xe6\x8d\xae\xe5\xba\x93\xe6\x88\x90\xe5\x8a\x9f!","确定");
         //新qsqlquery才可以查询，否则提示数据库未打开
@@ -80,14 +81,14 @@ void CONN_Dialog::on_pushButton_test_clicked()
 //        else {
 //            qDebug()<<"succeed";
 //        }
-        emit conn_ok();//发送数据库lian连接成功信号
-        this->close();
+        emit conn_ok();//发送数据库连接成功信号
+        this->close();//连接成功关闭本界面
         return;
     }
 }
 
 void CONN_Dialog::on_pushButton_cancle_clicked()
 {
-    this->close();
+    this->close();//取消连接关闭本界面
 }
 
