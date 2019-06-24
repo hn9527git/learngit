@@ -1,5 +1,5 @@
 ﻿生成过程：
-	1.进入目录，qmake -project 生成一个与平台无关的项目文件hello.pro
+	1.进入目录（含有.cpp和.h文件即可），qmake -project 生成一个与平台无关的项目文件hello.pro
 	2.qmake hello.pro 生成与平台相关的makefile文件
 	3.make 构建该程序
 析构：
