@@ -11,9 +11,14 @@ MyMainWindow::MyMainWindow(QWidget *parent) :
     ui(new Ui::MyMainWindow)
 {
     ui->setupUi(this);
+    setWindowFlags(windowFlags()&~Qt::WindowMaximizeButtonHint);//取消最大化按钮
+    //setWindowFlags(windowFlags()&~Qt::WindowMinMaxButtonsHint|Qt::WindowMinimizeButtonHint);
+    //setWindowFlags(windowFlags()&~Qt::WindowMinMaxButtonsHint);
+    setFixedSize(this->width(),this->height());//固定窗口大小
     this->timer=new QTimer;
     this->currTimeLable=new QLabel;
     this->timer->start(1000);
+    //状态栏显示时间
     connect(this->timer,SIGNAL(timeout()),this,SLOT(timeUpdate()));
     //仪表绘制
 
@@ -73,11 +78,15 @@ MyMainWindow::MyMainWindow(QWidget *parent) :
     connect(this->set_ptr,SIGNAL(sec_changed()),this,SLOT(mod_timer()));
 
     //数据库连接类的数据表名发生变化发出tab_name_set信号，通过槽函数修改数据表名
-    connect(this->cmysql,SIGNAL(tab_name_set()),this,SLOT(set_tab_name()));
+    //connect(this->cmysql,SIGNAL(tab_name_set()),this,SLOT(set_tab_name()));
 
     this->ui->horizontalSlider->setEnabled(false);//未打开串口时不能向串口发送数据
 
     this->ui->pushButton_close->setEnabled(false);//设备未打开时不能关闭
+    this->ck_s=new ck_set;
+    ck_set_true=false;
+    connect(this->ck_s,SIGNAL(set_ck_ok()),this,SLOT(set_ck_ok()));
+    this->jishi=0;
 }
 
 MyMainWindow::~MyMainWindow()
@@ -183,12 +192,13 @@ void MyMainWindow::paintEvent(QPaintEvent *)
     else if(this->status==1)
     {
         painter.drawPixmap(20,485,20,20,QPixmap(":/bsimg/ok.png"));
-        this->ui->label_run->setText("运行正常");
+        this->ui->label_run->setText("正在运行");
     }
     else
     {
        painter.drawPixmap(20,485,20,20,QPixmap(":/bsimg/error.png"));
        this->ui->label_run->setText("运行异常");
+       QApplication::beep();
     }
     if(this->status_db==0)
     {
@@ -352,11 +362,11 @@ void MyMainWindow::drawLine(QPainter *painter)
 //    }
 //    this->update();//重绘界面
 //}
-void MyMainWindow::on_action_triggered()
-{
-    //chuankou ck;
-    ck->show();
-}
+//void MyMainWindow::on_action_triggered()
+//{
+//    //chuankou ck;
+//    ck->show();
+//}
 
 void MyMainWindow::timeUpdate()//状态栏显示时间
 {
@@ -365,11 +375,11 @@ void MyMainWindow::timeUpdate()//状态栏显示时间
     this->currTimeLable->setText(timeStr);
     ui->statusbar->addWidget(currTimeLable);
     //持续时间
-    if(this->jishi==true)
+    if(this->jishi==2)
     {
-        QString chixu_time=QString::number(start_time.msecsTo(currentTime)/3600000)+"h-"+\
-                QString::number(start_time.msecsTo(currentTime)%3600000/60000)+"min-"+\
-                QString::number(start_time.msecsTo(currentTime)%60000/1000)+"sec";
+        QString chixu_time=QString::number(jilu_start_time.msecsTo(currentTime)/3600000)+"h-"+\
+                QString::number(jilu_start_time.msecsTo(currentTime)%3600000/60000)+"min-"+\
+                QString::number(jilu_start_time.msecsTo(currentTime)%60000/1000)+"sec";
         this->ui->label_time->setText(chixu_time);
     }
 }
@@ -399,7 +409,7 @@ void MyMainWindow::dataUpdate()
     QString value0=this->leixing_str;
     QString value1=QString::number(this->m_value,10,1);
 
-    query.prepare("insert into "+this->tab+" (leixing,shunshi,wendu,yali)"
+    query.prepare("insert into data_caiji (leixing,shunshi,wendu,yali)"
                   "values (:value0,:value1,:value2,:value3)"
                   );
     query.bindValue(":value0",value0);
@@ -412,19 +422,42 @@ void MyMainWindow::dataUpdate()
     // qDebug()<<"插入";
     query.clear();
 }
-//打开
+
 void MyMainWindow::on_pushButton_open_clicked()
 {
+    if(ck_set_true==false)
+    {
+        int ret=QMessageBox::critical(this,"\xe6\x8f\x90\xe7\xa4\xba","\xe8\xaf\xb7\xe5\x85\x88\xe8\xae\xbe\xe7\xbd\xae\xe4\xb8\xb2\xe5\x8f\xa3\xe5\x8f\x82\xe6\x95\xb0!!!",\
+                              "确定","取消");
+        return ;
+//        if(QMessageBox::Yes==ret)
+//        {
+//            qDebug()<<"\xe7\xac\xac\xe4\xb8\x80\xe4\xb8\xaa\xe6\x8c\x89\xe9\x92\xae";
+//            this->ck_s->show();
+//        }
+//        else if(QMessageBox::No==ret)
+//        {
+//            qDebug()<<"\xe7\xac\xac\xe4\xba\x8c\xe4\xb8\xaa\xe6\x8c\x89\xe9\x92\xae";
+//            return ;
+//        }
+    }
+    //
+    this->jishi++;
+    if(this->jishi==2)
+    this->jilu_start_time=QDateTime::currentDateTime();
     this->ui->pushButton_close->setEnabled(true);//设备打开后可以关闭
     //设置数据库状态为记录中
     if(status_db==1)
     {
         this->status_db=2;
     }
+    //设置设备状态
+    this->status=1;
+    update();
     //设置累积流量为0
     this->leiji_ll=0;
     //打开计时
-    this->jishi=true;
+    //this->jishi=true;
     //设置开始时间
     this->start_time=QDateTime::currentDateTime();
     QString timeStr=start_time.toString("yyyy\xe5\xb9\xb4-MM\xe6\x9c\x88-dd\xe6\x97\xa5 hh:mm:ss");//年月日
@@ -433,10 +466,9 @@ void MyMainWindow::on_pushButton_open_clicked()
     this->m_dataTimer->start(this->sec);//打开流量计时，打开采集数据的定时器，设置采集数据的时间间隔
     this->ui->pushButton_open->setEnabled(false);
     //  设置串口
-    ck->serial = new QSerialPort;
-    //设置串口名
-    ck->serial->setPortName("COM1");
-    //打开串口
+    ck->serial = new QSerialPort;//已修改
+
+    ck->serial->setPortName(this->ck_s->com);
     if(ck->serial->open(QIODevice::ReadWrite)==false)
     {
         QMessageBox::critical(this,"串口","打开失败!","确定");
@@ -445,26 +477,77 @@ void MyMainWindow::on_pushButton_open_clicked()
     else {
         qDebug()<<"yes";
     }
-    //设置波特率
-    ck->serial->setBaudRate(QSerialPort::Baud9600);//设置波特率为9600
-
-    //设置数据位数
-    ck->serial->setDataBits(QSerialPort::Data8);//设置数据位8
-    //设置校验位
-    ck->serial->setParity(QSerialPort::NoParity);
-    //设置停止位
-    ck->serial->setStopBits(QSerialPort::OneStop);//停止位设置为1
-    //设置流控制
+    ck->serial->setBaudRate(this->ck_s->botelv);
+    switch (this->ck_s->shujuwei) {
+    case 6:
+        ck->serial->setDataBits(QSerialPort::Data6);//设置数据位8
+        break;
+    case 7:
+        ck->serial->setDataBits(QSerialPort::Data7);//设置数据位8
+        break;
+    case 8:
+        ck->serial->setDataBits(QSerialPort::Data8);//设置数据位8
+        break;
+    default:
+        break;
+    }
+    switch (this->ck_s->jiaoyanwei) {
+    case 0:
+        ck->serial->setParity(QSerialPort::NoParity);
+        break;
+    case 1:
+        ck->serial->setParity(QSerialPort::OddParity);
+        break;
+    case 2:
+        ck->serial->setParity(QSerialPort::EvenParity);
+        break;
+    default:
+        break;
+    }
+    switch (this->ck_s->jiaoyanwei) {
+    case 1:
+        ck->serial->setStopBits(QSerialPort::OneStop);
+        break;
+    case 2:
+        ck->serial->setStopBits(QSerialPort::TwoStop);
+        break;
+    default:
+        break;
+    }
     ck->serial->setFlowControl(QSerialPort::NoFlowControl);//设置为无流控制
-    //关闭设置菜单使能
-    //连接信号槽
-    // connect(serial,SIGNAL(readyRead()),this,SLOT(ReadDate()));
+    //设置串口名
+//    ck->serial->setPortName("COM1");
+//    //打开串口
+//    if(ck->serial->open(QIODevice::ReadWrite)==false)
+//    {
+//        QMessageBox::critical(this,"串口","打开失败!","确定");
+//        return;
+//    }
+//    else {
+//        qDebug()<<"yes";
+//    }
+//    //设置波特率
+//    ck->serial->setBaudRate(QSerialPort::Baud9600);//设置波特率为9600
+
+//    //设置数据位数
+//    ck->serial->setDataBits(QSerialPort::Data8);//设置数据位8
+//    //设置校验位
+//    ck->serial->setParity(QSerialPort::NoParity);
+//    //设置停止位
+//    ck->serial->setStopBits(QSerialPort::OneStop);//停止位设置为1
+//    //设置流控制
+//    ck->serial->setFlowControl(QSerialPort::NoFlowControl);//设置为无流控制
+//    //关闭设置菜单使能
+//    //连接信号槽
+//    // connect(serial,SIGNAL(readyRead()),this,SLOT(ReadDate()));
+    //QString kaishi("1");
+    //ck->serial->write(kaishi.toLatin1());
     connect(ck->serial,SIGNAL(readyRead()),this,SLOT(data_read_fenxi()));//数据分析开始
 
     this->ui->horizontalSlider->setEnabled(true);//打开串口后可以向串口发送数据
 
 }
-//数据分析
+
 void MyMainWindow::data_read_fenxi()
 {
     QByteArray buf;
@@ -506,17 +589,20 @@ void MyMainWindow::data_read_fenxi()
     buf.clear();
     qDebug()<<"end";
 }
-//关闭
+
 void MyMainWindow::on_pushButton_close_clicked()
 {
     this->status=0;//设置设备状态为未连接
-    this->jishi=false;
+    this->jishi=0;
     //this->ui->label_start_time->setText("");
     //    QSqlDatabase::removeDatabase("QMYSQL");//数据库连接关不掉
     //    this->cmysql->db.close();
     //    this->ui->label_shuju_status->setText("数据库未连接");
     //    this->status_db=0;//设置记录数据状态
-    this->status_db=1;//数据库仍然在连接着
+    if(this->status_db==2)
+    {
+        this->status_db=1;//数据库仍然在连接着
+    }
     QString style_mysql="color: rgb(129, 129, 129);";
     this->ui->label_shuju_status->setStyleSheet(style_mysql);
     this->ui->label_sv->setText("00.00");
@@ -538,7 +624,7 @@ void MyMainWindow::on_pushButton_close_clicked()
     this->update();
     this->ui->horizontalSlider->setEnabled(false);//关闭串口连接后不能发送数据
 }
-//发送数据栏
+
 void MyMainWindow::on_horizontalSlider_actionTriggered(int)
 {
 
@@ -582,7 +668,7 @@ void MyMainWindow::on_horizontalSlider_actionTriggered(int)
         strBin+="\n";
         this->ck->serial->write(strBin.toLatin1().data());
 }
-//类型具体更新
+
 void MyMainWindow::update_ui_lx()
 {
     switch (this->leixing)
@@ -617,7 +703,7 @@ void MyMainWindow::update_ui_lx()
     }
     this->ui->label_ll->setText(leixing_str);
 }
-//指针更新
+
 void MyMainWindow::update_zhen()
 {
     if((this->speed>=this->run_low)&&(this->speed<=this->run_high))
@@ -642,7 +728,7 @@ void MyMainWindow::update_zhen()
     //this->ui->horizontalSlider->setValue(this->speed);//根据表盘数值设置下方调节栏的值，应删除
     this->update();
 }
-//MySQL数据库连接状态改变
+
 void MyMainWindow::mysql_status()
 {
     if(this->status!=0)
@@ -655,24 +741,28 @@ void MyMainWindow::mysql_status()
     }
     QString style="color: rgb(76, 255, 76);";
     this->ui->label_shuju_status->setStyleSheet(style);
+    //同时开始记录时长的计时
+    this->jishi++;
+    if(this->jishi==2)
+    this->jilu_start_time=QDateTime::currentDateTime();
 }
-//更新类型
+
 void MyMainWindow::update_leiji()
 {
     this->leiji_ll+=(this->speed/(double)(3600))*1000;
     this->ui->label_leiji->setText(QString::number(leiji_ll,6,1));
 }
-//关于Qt
+
 void MyMainWindow::on_action_Qt_triggered()
 {
     QMessageBox::aboutQt(this);
 }
-//设置参数界面
+
 void MyMainWindow::on_action_3_triggered()
 {
     this->set_ptr->show();
 }
-//设置正常流量范围
+
 void MyMainWindow::set_range()
 {
     this->run_low=this->set_ptr->get_low();
@@ -684,16 +774,31 @@ void MyMainWindow::set_range()
 //{
 //    this->tab=this->cmysql->tab_name;
 //}
-//打开仓库管理界面
+
 void MyMainWindow::on_action_5_triggered()
 {
     this->ck_ctrl=new cangku;
     this->ck_ctrl->show();
 }
-//修改定时器，改变采集数据的间隔
+
 void MyMainWindow::mod_timer()
 {
     this->sec=this->set_ptr->get_sec();
     this->m_dataTimer->stop();
     this->m_dataTimer->start(this->sec);
+}
+
+void MyMainWindow::on_action_6_triggered()
+{
+    this->ck->show();
+}
+
+void MyMainWindow::on_action_triggered()
+{
+    ck_s->show();
+}
+
+void MyMainWindow::set_ck_ok()
+{
+    this->ck_set_true=true;
 }

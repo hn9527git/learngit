@@ -36,8 +36,8 @@ void conn_mysql_dialog::on_pushButton_clicked()//查看所有数据
 {
     //tableview显示数据
     this->p_conn_dialog=CONN_Dialog::get_conn_dialog();
-    this->tab_name=this->p_conn_dialog->get_tab_name();
-    model->setTable(this->tab_name);
+    //this->tab_name=this->p_conn_dialog->get_tab_name();
+    model->setTable("data_caiji");
     ui->tableView->setModel(model);
     //显示所有数据
     if(model->select()==false)
@@ -66,23 +66,23 @@ void conn_mysql_dialog::on_pushButton_find_clicked()
     this->ui->tableView->setModel(this->stand_model);//设置模式
     int xuanze=this->ui->comboBox->currentIndex();
     QString id;
+    QString name;
     //qDebug()<<"find in";
     switch (xuanze) {
     case 0:
         break;
     case 1://按ID查询
+        this->stand_model->removeRows(0,stand_model->rowCount());//删除当前的数据条目
+//        this->stand_model->clear();
+//        this->ui->tableView->setModel(this->stand_model);//设置模式
         id=ui->lineEdit_find->text();
-        query->prepare("select * from data where id=:id");
+        query->prepare("select * from data_caiji where id=:id");
         query->bindValue(0,id);
         query->exec();
         int row;
         row=0;
         while (query->next())
         {
-//            qDebug()<<"yes";
-//            QString temp;
-//            temp=query->value(0).toString()+" "+query->value(1).toString()+" "+query->value(2).toString();
-//            qDebug()<<temp;
             for(int i=0;i<6;i++)
             {
                 this->stand_model->setItem(row,i,new QStandardItem(query->value(i).toString()));
@@ -90,11 +90,25 @@ void conn_mysql_dialog::on_pushButton_find_clicked()
             row++;
         }
         break;
-    case 2://按时间查询
-
-        break;
-    case 3://按名称查询
-
+    case 2://按名称查询
+        this->stand_model->removeRows(0,stand_model->rowCount());//删除当前的数据条目
+//        this->stand_model->clear();
+//        this->ui->tableView->setModel(this->stand_model);//设置模式
+        name=this->ui->lineEdit_find->text().left(2);
+        qDebug()<<"name============================="<<name;
+        query->prepare("select * from data_caiji where left(leixing,2)=:name");
+        query->bindValue(0,name);
+        query->exec();
+        int rowid;
+        rowid=0;
+        while (query->next())
+        {
+            for(int i=0;i<6;i++)
+            {
+                this->stand_model->setItem(rowid,i,new QStandardItem(query->value(i).toString()));
+            }
+            rowid++;
+        }
         break;
     default:
         break;

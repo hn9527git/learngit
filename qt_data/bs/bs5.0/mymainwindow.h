@@ -13,6 +13,7 @@
 #include <QDateTime>
 #include <set.h>
 #include "cangku.h"
+#include "ck_set.h"
 
 namespace Ui {
 class MyMainWindow;
@@ -39,7 +40,7 @@ protected:
     void drawLine(QPainter *painter);//绘线
 
 private slots:
-    void on_action_triggered();//显示串口界面
+   // void on_action_triggered();//显示串口界面
     void timeUpdate();
 
     void on_action_2_triggered();//查看数据界面
@@ -70,6 +71,14 @@ private slots:
     void on_action_5_triggered();
 
     void mod_timer();//修改定时器槽函数
+
+    void on_action_6_triggered();
+
+    //void on_action_4_triggered();
+
+    void on_action_triggered();
+
+    void set_ck_ok();
 
 signals:
     void data_update();//自定义信号
@@ -109,8 +118,9 @@ private:
     double yali;//压力
     double leiji_ll;//累积流量
     //double sv;//瞬时流量
-    QDateTime start_time;
-    bool jishi;//关闭时记录时长不变
+    QDateTime start_time;//设备运行开始时间
+    QDateTime jilu_start_time;
+    int jishi;//关闭时记录时长不变
     int status;//设备运行状态
     int status_db;//记录数据状态
     int run_low;//正常状态最低值
@@ -119,6 +129,9 @@ private:
     QString tab;//数据表名称
     int sec;//数据采集间隔时间
     cangku *ck_ctrl;//仓库管理类
+    ck_set  *ck_s;//设置串口类
+    bool ck_set_true;
+
 
 
 public Q_SLOTS:

@@ -34,7 +34,8 @@ SOURCES += \
     cangku.cpp \
     cangku_add.cpp \
     cangku_in.cpp \
-    cangku_out.cpp
+    cangku_out.cpp \
+    ck_set.cpp
 
 HEADERS += \
         chuankou.h \
@@ -45,7 +46,8 @@ HEADERS += \
     cangku.h \
     cangku_add.h \
     cangku_in.h \
-    cangku_out.h
+    cangku_out.h \
+    ck_set.h
 
 FORMS += \
         chuankou.ui \
@@ -56,7 +58,10 @@ FORMS += \
     cangku.ui \
     cangku_add.ui \
     cangku_in.ui \
-    cangku_out.ui
+    cangku_out.ui \
+    ck_set.ui
 
 RESOURCES += \
     images.qrc
+
+RC_ICONS = myico.ico

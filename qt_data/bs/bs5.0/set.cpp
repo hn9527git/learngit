@@ -1,5 +1,6 @@
 #include "set.h"
 #include "ui_set.h"
+#include <QDebug>
 
 set::set(QWidget *parent) :
     QWidget(parent),
@@ -35,14 +36,21 @@ void set::on_pushButton_close_clicked()
 
 void set::on_pushButton_ok_clicked()
 {
-    this->low=this->ui->lineEdit_low->text().toInt();
-    this->high=this->ui->lineEdit_high->text().toInt();
-    if(this->ui->lineEdit->text().toInt()!=1000)
+    int l=this->ui->lineEdit_low->text().toInt();
+    int h=this->ui->lineEdit_high->text().toInt();
+    if( l>=0 && h>0 && l<h)
+    {
+        this->low=this->ui->lineEdit_low->text().toInt();
+        this->high=this->ui->lineEdit_high->text().toInt();
+        emit range_changed();
+    }
+    // qDebug()<<"zuigao1shangxianshi1"<<this->high;
+    if(this->ui->lineEdit->text().toInt()>0)
     {
         this->sec=this->ui->lineEdit->text().toInt();
         emit sec_changed();
     }
     //设置完再通知主界面取值
-    emit range_changed();
+
     this->close();
 }
