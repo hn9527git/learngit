@@ -299,6 +299,8 @@ Oracle
 	set linesize 300;--全局
 	set pagesize 30;--全局
 	COL 列名 FOR An(宽度) --单列
+查看当前登录的用户的表:
+  	select table_name from user_tables;
 ed: Windows下
 	ed name 自动寻找name.sql导入
 	@name 导入

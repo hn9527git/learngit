@@ -1,0 +1,24 @@
+Oracle-->MySQL
+nvl2(a.user_id,'1','0')          ----> if(isnull(a.user_id),'0','1')  // nvl2:如果参数1为null返回参数3，否则返回参数2
+a.canshu=b.canshu(+)表示b为左连接的副表 ----> a left join b  on a.canshu=b.canshu  // 可以连续left join
+row_number()over(partition by t.user_id order by canshu) ---->
+select    
+	statis_month,
+	.......
+from
+(
+select     statis_month,
+ 		   ......
+           //////////////-- row_number()over(partition by t.user_id order by accept_date) deal_time_order,
+		   if(@user_id=t.user_id,@rank:=@rank+1,@rank:=1) deal_time_order,
+           a.area_code,
+		   @user_id:=t.user_id
+      from tab1    t,
+           tab2    c, 
+           ......
+		   (select @user_id:=null,@rank=0) r
+     where ......
+		order by t.user_id,accept_date
+)temp
+to_char(7788)    ---->    cast(7788 as char) 或 concat(7788,' ')  // 将其转换为char类型
+to_char(time,'yyyymmddhh24miss') ----> date_format(time,'%Y%m%d%T')	  // %T可以换成%H%i%s
